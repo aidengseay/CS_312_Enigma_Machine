@@ -1,6 +1,9 @@
 # ignore all .env files holding secrets
 *.env
 
+# ignore db cert
+*.crt
+
 # dependencies
 */node_modules
 */.pnp
