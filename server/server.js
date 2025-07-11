@@ -20,15 +20,31 @@ const db = new pg.Client({
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
+    ssl: { rejectUnauthorized: false }
 });
 
 // middleware //////////////////////////////////////////////////////////////////
 
 app.use(express.json());
+db.connect();
 
 // routes //////////////////////////////////////////////////////////////////////
 
-app.get("/server/test", (req, res) => {
+// test function for database access
+app.get("/db-test", async (req, res) => {
+    try {
+      const dbRes = await db.query("SELECT * FROM users");
+      console.log("DB is connected!")
+      res.send("DB is connected!");
+    } catch (err) {
+      console.log("DB error");
+      res.send("DB error");
+    }
+});
+
+// test function for backend server access
+app.get("/server-test", (req, res) => {
+    console.log("Server is working!");
     res.send("Server is working!");
 });
 
