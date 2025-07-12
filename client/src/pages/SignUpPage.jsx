@@ -1,38 +1,48 @@
-// This component renders the login form and handles user authentication.
+// This component renders the signup form and handles user registration.
 import React, { useState } from 'react';
 import axios from 'axios';
 
-export default function LogInPage({ onLoginSuccess, onSwitchToSignup }) {
+export default function SignInPage({ onSignupSuccess, onSwitchToLogin }) {
     // State for form fields and UI feedback
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Handle form submission for login
+    // Handle form submission for signup
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        // Validate passwords
+        if (password !== confirmPassword) {
+            setError('Passwords do not match!');
+            return;
+        }
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters');
+            return;
+        }
         setLoading(true);
         try {
-            // Send login request to backend
-            const response = await axios.post('/login', {
+            // Send registration request to backend
+            const response = await axios.post('/register', {
                 username,
                 password
             });
-            // If login is successful, call parent handler
+            // If registration is successful, call parent handler
             if (response.data.user) {
-                onLoginSuccess(response.data.user);
+                onSignupSuccess(response.data.user);
             }
         } catch (err) {
-            // Show error message if login fails
-            setError(err.response?.data?.error || 'Login failed');
+            // Show error message if registration fails
+            setError(err.response?.data?.error || 'Registration failed');
         } finally {
             setLoading(false);
         }
     };
 
-    // Render the login form UI
+    // Render the signup form UI
     return (
         <div style={{
             display: 'flex',
@@ -56,9 +66,9 @@ export default function LogInPage({ onLoginSuccess, onSwitchToSignup }) {
                     marginBottom: '30px',
                     textShadow: '0 0 10px #f39c12'
                 }}>
-                    Enigma Machine Login
+                    Create Account
                 </h1>
-                {/* Login form */}
+                {/* Signup form */}
                 <form onSubmit={handleSubmit}>
                     {/* Username input */}
                     <div style={{ marginBottom: '20px' }}>
@@ -114,6 +124,33 @@ export default function LogInPage({ onLoginSuccess, onSwitchToSignup }) {
                             required
                         />
                     </div>
+                    {/* Confirm password input */}
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={{
+                            display: 'block',
+                            color: '#ecf0f1',
+                            marginBottom: '8px',
+                            fontSize: '16px'
+                        }}>
+                            Confirm Password:
+                        </label>
+                        <input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                border: '2px solid #555',
+                                borderRadius: '5px',
+                                background: '#1a1a1a',
+                                color: '#ecf0f1',
+                                fontSize: '16px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        />
+                    </div>
                     {/* Error message */}
                     {error && (
                         <div style={{
@@ -127,14 +164,14 @@ export default function LogInPage({ onLoginSuccess, onSwitchToSignup }) {
                             {error}
                         </div>
                     )}
-                    {/* Login button */}
+                    {/* Signup button */}
                     <button
                         type="submit"
                         disabled={loading}
                         style={{
                             width: '100%',
                             padding: '12px',
-                            background: '#3498db',
+                            background: '#27ae60',
                             color: 'white',
                             border: 'none',
                             borderRadius: '5px',
@@ -144,17 +181,17 @@ export default function LogInPage({ onLoginSuccess, onSwitchToSignup }) {
                             marginBottom: '15px'
                         }}
                     >
-                        {loading ? 'Logging in...' : 'Login'}
+                        {loading ? 'Creating account...' : 'Sign Up'}
                     </button>
-                    {/* Link to signup page */}
+                    {/* Link to login page */}
                     <div style={{
                         textAlign: 'center',
                         color: '#ecf0f1'
                     }}>
-                        Don't have an account?{' '}
+                        Already have an account?{' '}
                         <button
                             type="button"
-                            onClick={onSwitchToSignup}
+                            onClick={onSwitchToLogin}
                             style={{
                                 background: 'none',
                                 border: 'none',
@@ -164,7 +201,7 @@ export default function LogInPage({ onLoginSuccess, onSwitchToSignup }) {
                                 fontSize: '14px'
                             }}
                         >
-                            Sign up
+                            Login
                         </button>
                     </div>
                 </form>
