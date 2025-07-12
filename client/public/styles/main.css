@@ -1,0 +1,402 @@
+/*
+  General dark theme and layout for the Enigma Machine app
+  ------------------------------------------------------
+  - Sets up background, font, and root container
+*/
+body {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: #ecf0f1;
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+#root {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/*
+  Main Enigma Machine Container
+  ----------------------------
+  - Styles the main box that holds the entire machine UI
+  - Adds a wood-like gradient, border, and shadow for realism
+*/
+.enigma-machine {
+    background: linear-gradient(145deg, #8b4513, #a0522d);
+    border: 8px solid #654321;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 
+        0 0 30px rgba(0, 0, 0, 0.8),
+        inset 0 0 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+/*
+  Adds a subtle border highlight to the machine container
+*/
+.enigma-machine::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #d2691e, #cd853f, #d2691e);
+    border-radius: 20px;
+    z-index: -1;
+}
+
+/*
+  Machine Body (optional inner container)
+  --------------------------------------
+  - Adds padding and inner shadow for depth
+*/
+.machine-body {
+    background: linear-gradient(145deg, #8b4513, #a0522d);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/*
+  Rotor Panel
+  -----------
+  - Styles the area showing rotor positions
+*/
+.rotor-panel {
+    background: #2c2c2c;
+    border: 3px solid #444;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+.rotor-display h3 {
+    color: #f39c12;
+    text-align: center;
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    text-shadow: 0 0 5px #f39c12;
+}
+
+/*
+  Rotor windows (the little boxes showing each rotor's position)
+*/
+.rotor-windows {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.rotor-window {
+    background: #1a1a1a;
+    border: 2px solid #555;
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+    min-width: 80px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
+}
+
+.rotor-number {
+    color: #95a5a6;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.rotor-position {
+    color: #e74c3c;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #e74c3c;
+}
+
+/*
+  Main content area: side-by-side layout
+  -------------------------------------
+  - Arranges the message panel and keyboard/lampboard section
+*/
+.main-content {
+    display: flex;
+    gap: 32px;
+    margin-top: 24px;
+}
+
+/*
+  Message Panel (Input/Output)
+  ---------------------------
+  - Styles the left panel showing input and output messages
+*/
+.message-panel {
+    flex: 1 1 250px;
+    background: #2c2c2c;
+    border: 3px solid #444;
+    border-radius: 8px;
+    padding: 20px;
+    min-width: 220px;
+    max-width: 350px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.input-display, .output-display {
+    margin-bottom: 15px;
+}
+
+.input-display h4, .output-display h4 {
+    color: #f39c12;
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    text-shadow: 0 0 5px #f39c12;
+}
+
+.message-text {
+    background: #1a1a1a;
+    border: 2px solid #555;
+    border-radius: 5px;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    color: #ecf0f1;
+    min-height: 30px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
+}
+
+/*
+  Keyboard Section (right side)
+  ----------------------------
+  - Contains the lampboard and keyboard
+*/
+.keyboard-section {
+    flex: 2 1 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 350px;
+}
+
+/*
+  Lampboard (the light-up display above the keyboard)
+  --------------------------------------------------
+*/
+.lampboard {
+    background: #2c2c2c;
+    border: 3px solid #444;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+.lampboard h3 {
+    color: #f39c12;
+    text-align: center;
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    text-shadow: 0 0 5px #f39c12;
+}
+
+.lamp-display {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.lamp-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.lamp {
+    width: 40px;
+    height: 40px;
+    background: #1a1a1a;
+    border: 2px solid #555;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #95a5a6;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
+}
+
+.lamp.lit {
+    background: #e74c3c;
+    color: #ffffff;
+    text-shadow: 0 0 10px #e74c3c;
+    box-shadow: 
+        0 0 15px #e74c3c,
+        inset 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+/*
+  Keyboard Panel (virtual keyboard area)
+  -------------------------------------
+*/
+.keyboard-panel {
+    background: #2c2c2c;
+    border: 3px solid #444;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+/*
+  Override react-simple-keyboard styles for authentic look
+  -------------------------------------------------------
+*/
+.hg-theme-default {
+    background: transparent !important;
+    border: none !important;
+}
+
+.hg-button {
+    background: linear-gradient(145deg, #8b4513, #a0522d) !important;
+    color: #ffffff !important;
+    border: 2px solid #654321 !important;
+    border-radius: 8px !important;
+    font-weight: bold !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    transition: all 0.2s ease !important;
+}
+
+.hg-button:hover {
+    background: linear-gradient(145deg, #a0522d, #cd853f) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+.hg-button:active {
+    background: linear-gradient(145deg, #654321, #8b4513) !important;
+    transform: translateY(1px) !important;
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.5),
+        inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/*
+  Style for the space button (makes it blue and wider)
+*/
+.hg-button[data-skbtn="{space}"] {
+    background: linear-gradient(145deg, #3498db, #2980b9) !important;
+    color: #ffffff !important;
+    border: 2px solid #21618c !important;
+    font-weight: bold !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+    min-width: 80px !important;
+}
+
+.hg-button[data-skbtn="{space}"]:hover {
+    background: linear-gradient(145deg, #2980b9, #3498db) !important;
+    transform: translateY(-1px) !important;
+}
+
+.hg-button[data-skbtn="{space}"]:active {
+    background: linear-gradient(145deg, #21618c, #2980b9) !important;
+    transform: translateY(1px) !important;
+}
+
+/*
+  Big Keyboard Customization
+  -------------------------
+  - Makes the virtual keyboard and its buttons larger for better usability
+*/
+.big-keyboard {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    font-size: 2rem;
+    box-sizing: border-box;
+}
+
+.big-keyboard .hg-row {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    margin-bottom: 12px !important;
+}
+
+.big-keyboard .hg-button {
+    font-size: 2rem !important;
+    min-width: 40px !important;
+    max-width: 100px !important;
+    min-height: 48px !important;
+    padding: 12px 0 !important;
+    margin: 4px !important;
+    flex: 1 1 40px !important;
+    box-sizing: border-box !important;
+}
+
+.big-keyboard .hg-button[data-skbtn="{space}"] {
+    min-width: 60px !important;
+    max-width: 200px !important;
+    flex: 2 1 60px !important;
+}
+
+@media (max-width: 700px) {
+    .big-keyboard {
+        font-size: 1.2rem;
+        max-width: 100vw;
+        padding: 0 2vw;
+    }
+    .big-keyboard .hg-button {
+        font-size: 1.1rem !important;
+        min-width: 28px !important;
+        min-height: 32px !important;
+        padding: 6px 0 !important;
+        margin: 2px !important;
+    }
+    .big-keyboard .hg-button[data-skbtn="{space}"] {
+        min-width: 40px !important;
+        max-width: 120px !important;
+    }
+}
+
+/*
+  Responsive design for smaller screens
+  ------------------------------------
+  - Stacks panels vertically and shrinks lamp/rotor displays
+*/
+@media (max-width: 900px) {
+    .main-content {
+        flex-direction: column;
+        gap: 16px;
+    }
+    .keyboard-section, .message-panel {
+        min-width: 0;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .rotor-windows {
+        flex-direction: column;
+        align-items: center;
+    }
+    .lamp-row {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .lamp {
+        width: 35px;
+        height: 35px;
+        font-size: 12px;
+    }
+}
