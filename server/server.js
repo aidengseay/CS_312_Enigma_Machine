@@ -13,7 +13,7 @@ const app = express();
 const port = 8000;
 const saltRounds = 10;
 
-const db = new pg.Client({
+const db = new pg.Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
