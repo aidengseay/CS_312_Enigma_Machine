@@ -4,7 +4,6 @@
 import Keyboard from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 
-
 // constants ///////////////////////////////////////////////////////////////////
 // none
 
@@ -13,7 +12,6 @@ import "react-simple-keyboard/build/css/index.css";
 export default function EnigmaKeyboard({ onKeyPress }) {
   
     // Define the keyboard layout: three rows of capital letters and a space bar
-    // The layout matches a typical Enigma machine keyboard
     const layout = {
         default: [
         "Q W E R T Y U I O P",
@@ -36,7 +34,6 @@ export default function EnigmaKeyboard({ onKeyPress }) {
     };
 
     // Render the virtual keyboard with the specified layout and handler
-    // Add a 'big-keyboard' class for custom sizing
     return (
         <div className="big-keyboard">
             <Keyboard layout={layout} onKeyPress={handleKeyPress}/>
