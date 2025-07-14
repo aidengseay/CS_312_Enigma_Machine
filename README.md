@@ -132,3 +132,24 @@ Below are resources used to make an accurate enigma machine emulator
 * [useEffect](https://react.dev/reference/react/useEffect) documentation
 * [Supabase](https://supabase.com/) used as PostgreSQL server
 * Supabase general pgAdmin [documentation](https://supabase.com/docs/guides/database/pgadmin)
+
+### Backend Technologies
+
+* [Express.js](https://expressjs.com/) - Web application framework for Node.js
+* [PostgreSQL (pg)](https://node-postgres.com/) - PostgreSQL client for Node.js
+* [bcrypt](https://www.npmjs.com/package/bcrypt) - Password hashing library
+* [dotenv](https://www.npmjs.com/package/dotenv) - Environment variable loader
+* [body-parser](https://www.npmjs.com/package/body-parser) - Request body parsing middleware
+
+### Frontend Technologies
+
+* [Axios](https://axios-http.com/) - HTTP client for making API requests
+* [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) - Testing utilities for React
+* [Web Vitals](https://web.dev/vitals/) - Performance monitoring library
+* [ESLint](https://eslint.org/) - Code linting and formatting
+* [React Scripts](https://www.npmjs.com/package/react-scripts) - Build tools and development server
+
+### Historical Context
+
+* [Bletchley Park](https://bletchleypark.org.uk/) - Historical site where Enigma was broken
+* [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing) - Mathematician who led the effort to break Enigma
