@@ -15,7 +15,7 @@ import axios from "axios";
 
 // EnigmaMachine component /////////////////////////////////////////////////////
 // This component simulates the Enigma machine UI and logic
-export default function EnigmaMachine({ config, user_id, config_id = 1 }) {
+export default function EnigmaMachine({ config, user_id, config_id}) {
     // --- Plugboard setup ---
     // Use a ref to persist the plugboard instance across renders
     const plugboardRef = useRef(new Plugboard());
@@ -43,11 +43,15 @@ export default function EnigmaMachine({ config, user_id, config_id = 1 }) {
     const reflectorRef = useRef(new Reflector(REFLECTORS[config.reflector].wiring));
 
     // --- State for input/output and rotor positions ---
-    const [inputMessage, setInputMessage] = useState(""); // User's input
-    const [outputMessage, setOutputMessage] = useState(""); // Encoded output
+    // Save user's input
+    const [inputMessage, setInputMessage] = useState("");
+    // Save encoded output
+    const [outputMessage, setOutputMessage] = useState("");
+    // Track current rotor positions
     const [rotorPositions, setRotorPositions] = useState(
-        rotorsRef.current.map((r) => r.rotorPos)); // Current rotor positions
-    const [saveStatus, setSaveStatus] = useState(""); // Save message feedback
+        rotorsRef.current.map((r) => r.rotorPos));
+    // Save the save button response
+    const [saveStatus, setSaveStatus] = useState("");
 
     // --- Save message handler ---
     const handleSaveMessage = async () => {

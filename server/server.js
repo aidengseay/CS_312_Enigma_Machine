@@ -1,7 +1,6 @@
 // imports /////////////////////////////////////////////////////////////////////
 
 import express from "express";
-import bodyParser from "body-parser";
 import pg from "pg";
 import bcrypt from "bcrypt";
 
@@ -29,22 +28,6 @@ app.use(express.json());
 db.connect();
 
 // routes //////////////////////////////////////////////////////////////////////
-
-app.get("/", async (req, res) => {
-  try {
-    const dbRes = await db.query("SELECT * FROM users");
-    console.log(dbRes.rows);
-    res.json(dbRes.rows);
-  } catch (err) {
-    console.error("Error executing query", err);
-    res.status(500).send("Database error");
-  }
-});
-
-
-app.get("/server/test", (req, res) => {
-    res.send("Server is working!");
-});
 
 // User registration
 app.post("/register", async (req, res) => {
@@ -79,6 +62,7 @@ app.post("/register", async (req, res) => {
             message: "User registered successfully",
             user: result.rows[0]
         });
+
     } catch (err) {
         console.error("Registration error:", err);
         res.status(500).json({ error: "Server error during registration" });
@@ -117,6 +101,7 @@ app.post("/login", async (req, res) => {
                 username: user.username
             }
         });
+        
     } catch (err) {
         console.error("Login error:", err);
         res.status(500).json({ error: "Server error during login" });
