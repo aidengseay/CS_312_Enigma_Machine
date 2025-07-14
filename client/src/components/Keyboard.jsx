@@ -1,36 +1,42 @@
 // imports /////////////////////////////////////////////////////////////////////
 
+// Import the virtual keyboard component and its CSS
 import Keyboard from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 
 // constants ///////////////////////////////////////////////////////////////////
-
 // none
 
-// keyboard function ///////////////////////////////////////////////////////////
-
+// EnigmaKeyboard component ////////////////////////////////////////////////////
+// This component renders a virtual QWERTY keyboard for the Enigma machine UI
 export default function EnigmaKeyboard({ onKeyPress }) {
   
-    // define layout with only capital letters
+    // Define the keyboard layout: three rows of capital letters and a space bar
     const layout = {
         default: [
         "Q W E R T Y U I O P",
         "A S D F G H J K L",
-        "Z X C V B N M"
+        "Z X C V B N M {space}"
         ]
     };
 
-    // handle key press event
+    // Handle key press events from the virtual keyboard
+    // - If the space bar is pressed, send a space character
+    // - Otherwise, send the uppercase letter
     const handleKeyPress = (button) => {
         if (onKeyPress) {
-        onKeyPress(button.toUpperCase());
+            if (button === "{space}") {
+                onKeyPress(" ");
+            } else {
+                onKeyPress(button.toUpperCase());
+            }
         }
     };
 
-    // display the keyboard layout
+    // Render the virtual keyboard with the specified layout and handler
     return (
-        <div>
-        <Keyboard layout={layout} onKeyPress={handleKeyPress}/>
+        <div className="big-keyboard">
+            <Keyboard layout={layout} onKeyPress={handleKeyPress}/>
         </div>
     );
 }
