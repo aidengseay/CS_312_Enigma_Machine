@@ -5,6 +5,7 @@ import EnigmaMachine from "./components/EnigmaMachine";
 import LogInPage from "./pages/LogInPage";
 import SignUpPage from "./pages/SignUpPage";
 import HomePage from "./pages/HomePage";
+import AccountPage from "./pages/AccountPage";
 
 // main app function ///////////////////////////////////////////////////////////
 
@@ -98,39 +99,57 @@ function App() {
                     return <HomePage />;
             }
         } else {
-            return (
-                <div>
-                    <div style={{ 
-                        display: "flex", 
-                        justifyContent: "space-between", 
-                        alignItems: "center",
-                        marginBottom: "20px",
-                        padding: "10px",
-                        background: "#2c2c2c",
-                        borderRadius: "8px"
-                    }}>
-                        <h2 style={{ margin: 0, color: "#f39c12" }}>
-                            Welcome, {user?.username}!
-                        </h2>
+            switch (currentPage) {
+                case "account":
+                    return <AccountPage user={user} onLogout={handleLogout} onBack={() => setCurrentPage("enigma")} />;
+                default:
+                    return (
                         <div>
-                            <button 
-                                onClick={handleLogout}
-                                style={{
-                                    background: "#e74c3c",
-                                    color: "white",
-                                    border: "none",
-                                    padding: "8px 16px",
-                                    borderRadius: "4px",
-                                    cursor: "pointer"
-                                }}
-                            >
-                                Logout
-                            </button>
+                            <div style={{ 
+                                display: "flex", 
+                                justifyContent: "space-between", 
+                                alignItems: "center",
+                                marginBottom: "20px",
+                                padding: "10px",
+                                background: "#2c2c2c",
+                                borderRadius: "8px"
+                            }}>
+                                <h2 style={{ margin: 0, color: "#f39c12" }}>
+                                    Welcome, {user?.username}!
+                                </h2>
+                                <div style={{ display: "flex", gap: "10px" }}>
+                                    <button 
+                                        onClick={() => setCurrentPage("account")}
+                                        style={{
+                                            background: "#3498db",
+                                            color: "white",
+                                            border: "none",
+                                            padding: "8px 16px",
+                                            borderRadius: "4px",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        Account
+                                    </button>
+                                    <button 
+                                        onClick={handleLogout}
+                                        style={{
+                                            background: "#e74c3c",
+                                            color: "white",
+                                            border: "none",
+                                            padding: "8px 16px",
+                                            borderRadius: "4px",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            </div>
+                            <EnigmaMachine config={config} user_id={user?.user_id} config_id={config_id}/>
                         </div>
-                    </div>
-                    <EnigmaMachine config={config} user_id={user?.user_id} config_id={config_id}/>
-                </div>
-            );
+                    );
+            }
         }
     };
 
