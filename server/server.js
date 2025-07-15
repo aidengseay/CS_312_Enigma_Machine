@@ -126,6 +126,64 @@ app.post("/messages", async (req, res) => {
     }
 });
 
+// Change password
+app.post("/change-password", async (req, res) => {
+    try {
+        const { user_id, current_password, new_password } = req.body;
+        if (!user_id || !current_password || !new_password) {
+            return res.status(400).json({ error: "user_id, current_password, and new_password are required" });
+        }
+        if (new_password.length < 6) {
+            return res.status(400).json({ error: "New password must be at least 6 characters" });
+        }
+        // Get user
+        const result = await db.query("SELECT password FROM users WHERE user_id = $1", [user_id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        const user = result.rows[0];
+        // Verify current password
+        const passwordMatch = await bcrypt.compare(current_password, user.password);
+        if (!passwordMatch) {
+            return res.status(401).json({ error: "Current password is incorrect" });
+        }
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(new_password, saltRounds);
+        await db.query("UPDATE users SET password = $1 WHERE user_id = $2", [hashedPassword, user_id]);
+        res.json({ message: "Password updated successfully" });
+    } catch (err) {
+        console.error("Change password error:", err);
+        res.status(500).json({ error: "Server error during password change" });
+    }
+});
+
+// Delete account
+app.post("/delete-account", async (req, res) => {
+    try {
+        const { user_id, password } = req.body;
+        if (!user_id || !password) {
+            return res.status(400).json({ error: "user_id and password are required" });
+        }
+        // Get user
+        const result = await db.query("SELECT password FROM users WHERE user_id = $1", [user_id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        const user = result.rows[0];
+        // Verify password
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            return res.status(401).json({ error: "Password is incorrect" });
+        }
+        // Delete user (cascades to messages and configs)
+        await db.query("DELETE FROM users WHERE user_id = $1", [user_id]);
+        res.json({ message: "Account deleted successfully" });
+    } catch (err) {
+        console.error("Delete account error:", err);
+        res.status(500).json({ error: "Server error during account deletion" });
+    }
+});
+
 // listening log ///////////////////////////////////////////////////////////////
 
 app.listen(port, () => {
