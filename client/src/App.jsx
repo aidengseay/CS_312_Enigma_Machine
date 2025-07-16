@@ -1,11 +1,11 @@
 // imports /////////////////////////////////////////////////////////////////////
 
 import { useState, useEffect } from "react";
-import EnigmaMachine from "./components/EnigmaMachine";
 import LogInPage from "./pages/LogInPage";
 import SignUpPage from "./pages/SignUpPage";
 import HomePage from "./pages/HomePage";
 import AccountPage from "./pages/AccountPage";
+import ConfigPage from "./pages/ConfigPage";
 
 // main app function ///////////////////////////////////////////////////////////
 
@@ -36,21 +36,6 @@ function App() {
     useEffect(() => {
         localStorage.setItem("enigmaPage", currentPage);
     }, [currentPage]);
-
-    // test config file
-    const config = {
-        rotors: [
-            { spec: "III", ringSetting: 0, startPosition: 0 },
-            { spec: "II", ringSetting: 0, startPosition: 0 },
-            { spec: "I", ringSetting: 0, startPosition: 0 },
-        ],
-        reflector: "UKW_B",
-        plugboardPairs: [
-            ["A", "B"],
-            ["C", "D"],
-        ],
-    };
-    const config_id = 1;
 
     // Handle successful login
     const handleLoginSuccess = (userData) => {
@@ -146,7 +131,9 @@ function App() {
                                     </button>
                                 </div>
                             </div>
-                            <EnigmaMachine config={config} user_id={user?.user_id} config_id={config_id}/>
+                            {/* TODO: swap this out for the config page */}
+                            {/* <EnigmaMachine config={config} user_id={user?.user_id} config_id={config_id}/> */}
+                            <ConfigPage user_id={user?.user_id} />
                         </div>
                     );
             }
