@@ -118,6 +118,11 @@ export class Plugboard {
 
     }
 
+    // Resets all plugboard mappings. This is used to clear the plugboard before adding new pairs,
+    // especially when re-initializing (e.g., navigating between pages) to prevent duplicate mapping errors.
+    reset() {
+        this.mapping = {};
+    }
 
 
 }

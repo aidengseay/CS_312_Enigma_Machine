@@ -23,6 +23,9 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
     // On config change, set up plugboard pairs
     useEffect(() => {
         const plugboard = plugboardRef.current;
+        // Reset plugboard before adding pairs to prevent duplicate mapping errors
+        // when the config changes or when navigating between pages.
+        plugboard.reset(); // Clear previous mappings before adding new pairs
         config.plugboardPairs.forEach(([letterOne, letterTwo]) => {
             plugboard.addPair(letterOne, letterTwo);
         });

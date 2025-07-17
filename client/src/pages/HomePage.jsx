@@ -1,8 +1,8 @@
 // This component renders a simple homepage for the Enigma Machine app.
 import React from "react";
 
-export default function HomePage() {
-    // Render a welcome message and navigation instructions
+export default function HomePage({ onLogin, onSignup }) {
+    // Render a welcome message and only Login/Signup options
     return (
         <div style={{
             display: "flex",
@@ -30,13 +30,43 @@ export default function HomePage() {
                 }}>
                     Welcome to the Enigma Machine Emulator!
                 </h1>
-                {/* Welcome and instructions */}
-                <p style={{ color: "#ecf0f1", fontSize: "18px", marginBottom: "20px" }}>
+                <p style={{ color: "#ecf0f1", fontSize: "18px", marginBottom: "30px" }}>
                     Please log in or sign up to use the Enigma machine.
                 </p>
-                <p style={{ color: "#ecf0f1", fontSize: "16px" }}>
-                    Use the navigation above to get started.
-                </p>
+                <div style={{ display: "flex", justifyContent: "center", gap: "30px" }}>
+                    <button
+                        onClick={onLogin}
+                        style={{
+                            background: "#3498db",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "8px",
+                            padding: "14px 36px",
+                            fontSize: "20px",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+                        }}
+                    >
+                        Log In
+                    </button>
+                    <button
+                        onClick={onSignup}
+                        style={{
+                            background: "#27ae60",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "8px",
+                            padding: "14px 36px",
+                            fontSize: "20px",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+                        }}
+                    >
+                        Sign Up
+                    </button>
+                </div>
             </div>
         </div>
     );
