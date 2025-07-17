@@ -126,6 +126,48 @@ app.post("/messages", async (req, res) => {
     }
 });
 
+// Get all saved messages for a user
+app.get("/messages", async (req, res) => {
+    try {
+        const { user_id } = req.query;
+        if (!user_id) {
+            return res.status(400).json({ error: "user_id is required" });
+        }
+        const result = await db.query(
+            `SELECT message_id, config_id, message_text, user_id
+             FROM messages
+             WHERE user_id = $1
+             ORDER BY message_id DESC`,
+            [user_id]
+        );
+        res.json({ messages: result.rows });
+    } catch (err) {
+        console.error("Error fetching messages:", err);
+        res.status(500).json({ error: "Server error while fetching messages" });
+    }
+});
+
+// Delete a message by message_id
+app.delete("/messages/:message_id", async (req, res) => {
+    try {
+        const { message_id } = req.params;
+        if (!message_id) {
+            return res.status(400).json({ error: "message_id is required" });
+        }
+        const result = await db.query(
+            "DELETE FROM messages WHERE message_id = $1 RETURNING *",
+            [message_id]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Message not found" });
+        }
+        res.json({ message: "Message deleted successfully" });
+    } catch (err) {
+        console.error("Error deleting message:", err);
+        res.status(500).json({ error: "Server error while deleting message" });
+    }
+});
+
 // Change password
 app.post("/change-password", async (req, res) => {
     try {

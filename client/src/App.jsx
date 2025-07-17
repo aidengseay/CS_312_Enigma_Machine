@@ -6,7 +6,6 @@ import SignUpPage from "./pages/SignUpPage";
 import HomePage from "./pages/HomePage";
 import AccountPage from "./pages/AccountPage";
 import ConfigPage from "./pages/ConfigPage";
-import SavedMessages from "./pages/SavedMessages";
 import EnigmaMachine from "./components/EnigmaMachine";
 
 // main app function ///////////////////////////////////////////////////////////
@@ -113,8 +112,6 @@ function App() {
             switch (currentPage) {
                 case "account":
                     return <AccountPage user={user} onLogout={handleLogout} onBack={() => setCurrentPage("enigma")} />;
-                case "savedmessages":
-                    return <SavedMessages onBack={() => setCurrentPage("enigma")} />;
                 case "configurations":
                     return <ConfigPage user_id={user?.user_id} />;
                 case "enigma":
@@ -235,21 +232,6 @@ function App() {
                         }}
                     >
                         Enigma Machine
-                    </button>
-                    <button
-                        onClick={() => { setCurrentPage("savedmessages"); setIsDropdownOpen(false); }}
-                        style={{
-                            width: "100%",
-                            background: "none",
-                            color: "#8e44ad",
-                            border: "none",
-                            padding: "12px 20px",
-                            textAlign: "left",
-                            cursor: "pointer",
-                            fontSize: 16
-                        }}
-                    >
-                        Saved Messages
                     </button>
                     {/* Logout is always last */}
                     <button
