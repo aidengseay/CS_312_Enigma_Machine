@@ -15,7 +15,7 @@ import axios from "axios";
 
 // EnigmaMachine component /////////////////////////////////////////////////////
 // This component simulates the Enigma machine UI and logic
-export default function EnigmaMachine({ config, user_id, config_id = 1 }) {
+export default function EnigmaMachine({ config, user_id, config_id}) {
     // --- Plugboard setup ---
     // Use a ref to persist the plugboard instance across renders
     const plugboardRef = useRef(new Plugboard());
@@ -23,6 +23,9 @@ export default function EnigmaMachine({ config, user_id, config_id = 1 }) {
     // On config change, set up plugboard pairs
     useEffect(() => {
         const plugboard = plugboardRef.current;
+        // Reset plugboard before adding pairs to prevent duplicate mapping errors
+        // when the config changes or when navigating between pages.
+        plugboard.reset(); // Clear previous mappings before adding new pairs
         config.plugboardPairs.forEach(([letterOne, letterTwo]) => {
             plugboard.addPair(letterOne, letterTwo);
         });
@@ -43,11 +46,36 @@ export default function EnigmaMachine({ config, user_id, config_id = 1 }) {
     const reflectorRef = useRef(new Reflector(REFLECTORS[config.reflector].wiring));
 
     // --- State for input/output and rotor positions ---
-    const [inputMessage, setInputMessage] = useState(""); // User's input
-    const [outputMessage, setOutputMessage] = useState(""); // Encoded output
+    // Save user's input
+    const [inputMessage, setInputMessage] = useState("");
+    // Save encoded output
+    const [outputMessage, setOutputMessage] = useState("");
+    // Track current rotor positions
     const [rotorPositions, setRotorPositions] = useState(
-        rotorsRef.current.map((r) => r.rotorPos)); // Current rotor positions
-    const [saveStatus, setSaveStatus] = useState(""); // Save message feedback
+        rotorsRef.current.map((r) => r.rotorPos));
+    // Save the save button response
+    const [saveStatus, setSaveStatus] = useState("");
+
+    // State for saved messages
+    const [savedMessages, setSavedMessages] = useState([]);
+    const [loadingMessages, setLoadingMessages] = useState(false);
+    const [messagesError, setMessagesError] = useState("");
+    const [deletingMessageId, setDeletingMessageId] = useState(null);
+
+    // Fetch saved messages when user_id changes
+    useEffect(() => {
+        if (!user_id) return;
+        setLoadingMessages(true);
+        setMessagesError("");
+        axios.get(`/messages?user_id=${user_id}`)
+            .then(res => {
+                setSavedMessages(res.data.messages || []);
+            })
+            .catch(err => {
+                setMessagesError("Failed to load saved messages.");
+            })
+            .finally(() => setLoadingMessages(false));
+    }, [user_id]);
 
     // --- Save message handler ---
     const handleSaveMessage = async () => {
@@ -69,6 +97,20 @@ export default function EnigmaMachine({ config, user_id, config_id = 1 }) {
             }
         } catch (err) {
             setSaveStatus("Error saving message.");
+        }
+    };
+
+    // Delete a saved message
+    const handleDeleteMessage = async (message_id) => {
+        if (!window.confirm("Delete this message?")) return;
+        setDeletingMessageId(message_id);
+        try {
+            await axios.delete(`/messages/${message_id}`);
+            setSavedMessages((msgs) => msgs.filter((msg) => msg.message_id !== message_id));
+        } catch (err) {
+            alert("Failed to delete message.");
+        } finally {
+            setDeletingMessageId(null);
         }
     };
 
@@ -142,6 +184,44 @@ export default function EnigmaMachine({ config, user_id, config_id = 1 }) {
                             {saveStatus}
                         </div>
                     )}
+                    {/* Saved Messages Section */}
+                    <div style={{ marginTop: 32 }}>
+                        <h4>Saved Messages</h4>
+                        {loadingMessages ? (
+                            <div>Loading...</div>
+                        ) : messagesError ? (
+                            <div style={{ color: "#e74c3c" }}>{messagesError}</div>
+                        ) : savedMessages.length === 0 ? (
+                            <div style={{ color: "#888" }}>No saved messages yet.</div>
+                        ) : (
+                            <ul style={{ maxHeight: 200, overflowY: "auto", padding: 0, listStyle: "none" }}>
+                                {savedMessages.map(msg => (
+                                    <li key={msg.message_id} style={{ background: "#222", color: "#fff", marginBottom: 8, padding: 10, borderRadius: 6, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                        <div>
+                                            <div style={{ fontSize: 14, color: "#aaa" }}>Config ID: {msg.config_id}</div>
+                                            <div style={{ fontSize: 16 }}>{msg.message_text}</div>
+                                        </div>
+                                        <button
+                                            onClick={() => handleDeleteMessage(msg.message_id)}
+                                            disabled={deletingMessageId === msg.message_id}
+                                            style={{
+                                                marginLeft: 16,
+                                                background: "#e74c3c",
+                                                color: "#fff",
+                                                border: "none",
+                                                borderRadius: 4,
+                                                padding: "6px 14px",
+                                                cursor: deletingMessageId === msg.message_id ? "not-allowed" : "pointer",
+                                                fontSize: 14
+                                            }}
+                                        >
+                                            {deletingMessageId === msg.message_id ? "Deleting..." : "Delete"}
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
                 </div>
 
                 {/* Right: Lampboard above Keyboard */}
