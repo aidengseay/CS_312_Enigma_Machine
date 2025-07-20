@@ -44,165 +44,27 @@ export default function SignInPage({ onSignupSuccess, onSwitchToLogin }) {
 
     // Render the signup form UI
     return (
-        <div style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "100vh",
-            background: "linear-gradient(135deg, #2c3e50 0%, #34495e 100%)",
-            fontFamily: "Courier New, monospace"
-        }}>
-            <div style={{
-                background: "linear-gradient(145deg, #8b4513, #a0522d)",
-                border: "8px solid #654321",
-                borderRadius: "15px",
-                padding: "40px",
-                boxShadow: "0 0 30px rgba(0, 0, 0, 0.8)",
-                minWidth: "400px"
-            }}>
-                <h1 style={{
-                    color: "#f39c12",
-                    textAlign: "center",
-                    marginBottom: "30px",
-                    textShadow: "0 0 10px #f39c12"
-                }}>
-                    Create Account
-                </h1>
-                {/* Signup form */}
-                <form onSubmit={handleSubmit}>
-                    {/* Username input */}
-                    <div style={{ marginBottom: "20px" }}>
-                        <label style={{
-                            display: "block",
-                            color: "#ecf0f1",
-                            marginBottom: "8px",
-                            fontSize: "16px"
-                        }}>
-                            Username:
-                        </label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            style={{
-                                width: "100%",
-                                padding: "12px",
-                                border: "2px solid #555",
-                                borderRadius: "5px",
-                                background: "#1a1a1a",
-                                color: "#ecf0f1",
-                                fontSize: "16px",
-                                boxSizing: "border-box"
-                            }}
-                            required
-                        />
+        <div className="page-center">
+            <div className="main-panel">
+                <h1 className="main-title">Create Account</h1>
+                <form className="main-form" onSubmit={handleSubmit}>
+                    <div className="main-form-group">
+                        <label className="main-label">Username:</label>
+                        <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="main-input" required />
                     </div>
-                    {/* Password input */}
-                    <div style={{ marginBottom: "20px" }}>
-                        <label style={{
-                            display: "block",
-                            color: "#ecf0f1",
-                            marginBottom: "8px",
-                            fontSize: "16px"
-                        }}>
-                            Password:
-                        </label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            style={{
-                                width: "100%",
-                                padding: "12px",
-                                border: "2px solid #555",
-                                borderRadius: "5px",
-                                background: "#1a1a1a",
-                                color: "#ecf0f1",
-                                fontSize: "16px",
-                                boxSizing: "border-box"
-                            }}
-                            required
-                        />
+                    <div className="main-form-group">
+                        <label className="main-label">Password:</label>
+                        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="main-input" required />
                     </div>
-                    {/* Confirm password input */}
-                    <div style={{ marginBottom: "20px" }}>
-                        <label style={{
-                            display: "block",
-                            color: "#ecf0f1",
-                            marginBottom: "8px",
-                            fontSize: "16px"
-                        }}>
-                            Confirm Password:
-                        </label>
-                        <input
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            style={{
-                                width: "100%",
-                                padding: "12px",
-                                border: "2px solid #555",
-                                borderRadius: "5px",
-                                background: "#1a1a1a",
-                                color: "#ecf0f1",
-                                fontSize: "16px",
-                                boxSizing: "border-box"
-                            }}
-                            required
-                        />
+                    <div className="main-form-group">
+                        <label className="main-label">Confirm Password:</label>
+                        <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="main-input" required />
                     </div>
-                    {/* Error message */}
-                    {error && (
-                        <div style={{
-                            color: "#e74c3c",
-                            marginBottom: "20px",
-                            textAlign: "center",
-                            padding: "10px",
-                            background: "#2c2c2c",
-                            borderRadius: "5px"
-                        }}>
-                            {error}
-                        </div>
-                    )}
-                    {/* Signup button */}
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        style={{
-                            width: "100%",
-                            padding: "12px",
-                            background: "#27ae60",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "5px",
-                            fontSize: "16px",
-                            cursor: loading ? "not-allowed" : "pointer",
-                            opacity: loading ? 0.7 : 1,
-                            marginBottom: "15px"
-                        }}
-                    >
-                        {loading ? "Creating account..." : "Sign Up"}
-                    </button>
-                    {/* Link to login page */}
-                    <div style={{
-                        textAlign: "center",
-                        color: "#ecf0f1"
-                    }}>
-                        Already have an account?{" "}
-                        <button
-                            type="button"
-                            onClick={onSwitchToLogin}
-                            style={{
-                                background: "none",
-                                border: "none",
-                                color: "#3498db",
-                                cursor: "pointer",
-                                textDecoration: "underline",
-                                fontSize: "14px"
-                            }}
-                        >
-                            Login
-                        </button>
+                    {error && <div className="main-error">{error}</div>}
+                    <button type="submit" disabled={loading} className="main-btn main-btn-signup">{loading ? "Creating account..." : "Sign Up"}</button>
+                    <div className="main-link-row">
+                        Already have an account?{' '}
+                        <button type="button" onClick={onSwitchToLogin} className="main-link-btn">Login</button>
                     </div>
                 </form>
             </div>

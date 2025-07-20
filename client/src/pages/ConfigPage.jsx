@@ -83,27 +83,42 @@ export default function ConfigPage({ user_id }) {
 
   else {
     return (
-        <div>
-            <h1>Enigma Machine Configuration Page</h1>
-
-            <form onSubmit={handleSubmit}>
-
-                <h2>Rotors Selection</h2>
-                <RotorSettings num={1} values={rotor1} setValues={setRotor1} />
-                <RotorSettings num={2} values={rotor2} setValues={setRotor2} />
-                <RotorSettings num={3} values={rotor3} setValues={setRotor3} />
-
-                <h2>Reflector Selection</h2>
-                <select name="Reflector" value={reflector} onChange={(e) => setReflector(e.target.value)}>
-                    <option value="UKW_B">UKW-B</option>
-                    <option value="UKW_C">UKW-C</option>
-                </select>
-
-                <h2>Plugboard Section</h2>
-                <PlugboardSettings plugboardPairs={plugboardPairs} setPlugboardPairs={setPlugboardPairs}/>
-
-                <button type="submit">Submit Configuration</button>
-            </form>
+        <div className="config-page-container">
+            <div className="config-form-panel">
+                <div className="config-title">Enigma Machine Configuration</div>
+                <form onSubmit={handleSubmit}>
+                    <div className="rotor-section-row">
+                        <div className="config-section">
+                            <div className="config-section-header">Rotors Selection</div>
+                            <div className="rotor-settings-row">
+                                <div className="rotor-settings-col"><RotorSettings num={1} values={rotor1} setValues={setRotor1} /></div>
+                                <div className="rotor-settings-col"><RotorSettings num={2} values={rotor2} setValues={setRotor2} /></div>
+                                <div className="rotor-settings-col"><RotorSettings num={3} values={rotor3} setValues={setRotor3} /></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="config-bottom-row">
+                        <div className="config-bottom-col">
+                            <div className="config-section">
+                                <div className="config-section-header">Reflector Selection</div>
+                                <select className="reflector-select" name="Reflector" value={reflector} onChange={(e) => setReflector(e.target.value)}>
+                                    <option value="UKW_B">UKW-B</option>
+                                    <option value="UKW_C">UKW-C</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="config-bottom-col">
+                            <div className="config-section">
+                                <div className="config-section-header">Plugboard Section</div>
+                                <div className="plugboard-section">
+                                    <PlugboardSettings plugboardPairs={plugboardPairs} setPlugboardPairs={setPlugboardPairs}/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button className="config-submit-btn" type="submit">Submit Configuration</button>
+                </form>
+            </div>
         </div>
     );
   }

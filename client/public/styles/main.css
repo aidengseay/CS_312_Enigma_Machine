@@ -400,3 +400,527 @@ body {
         font-size: 12px;
     }
 }
+
+/* Config Page Styles */
+.config-page-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 80vh;
+    background: none;
+}
+.config-form-panel {
+    background: linear-gradient(145deg, #8b4513, #a0522d);
+    border: 8px solid #654321;
+    border-radius: 15px;
+    padding: 56px 64px 48px 64px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    min-width: 0;
+    max-width: 900px;
+    width: 100%;
+    margin-top: 40px;
+}
+.config-title {
+    color: #f39c12;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 32px;
+    text-shadow: 0 0 10px #f39c12;
+}
+.config-section-header {
+    color: #27ae60;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 28px 0 12px 0;
+    text-shadow: 0 0 6px #27ae60;
+}
+.config-form-panel label {
+    color: #ecf0f1;
+    font-size: 1rem;
+    margin-top: 10px;
+    display: block;
+}
+.config-form-panel select,
+.config-form-panel input[type="text"],
+.config-form-panel input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0 16px 0;
+    background: #1a1a1a;
+    color: #ecf0f1;
+    border: 2px solid #555;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+.reflector-select {
+    width: 100%;
+    padding: 10px;
+    background: #1a1a1a;
+    color: #ecf0f1;
+    border: 2px solid #555;
+    border-radius: 5px;
+    font-size: 1rem;
+    margin-bottom: 16px;
+}
+.config-submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 28px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: background 0.2s;
+}
+.config-submit-btn:hover {
+    background: #217dbb;
+}
+.plugboard-section {
+    margin-bottom: 12px;
+}
+
+/* Config Page Layout - Bottom Row (Reflector + Plugboard side by side) */
+.config-bottom-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+.config-bottom-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Config Section Layout - Each section takes full width */
+.config-section {
+    width: 100%;
+    padding: 0 0 18px 0;
+    margin-bottom: 0;
+    background: none;
+}
+.rotor-section-row {
+    width: 100%;
+    margin-bottom: 18px;
+}
+
+/* Rotor Settings Layout - Horizontal row of 3 rotors */
+.rotor-settings-row {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 0;
+    flex-wrap: wrap; /* Allow wrapping if needed */
+}
+.rotor-settings-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+}
+
+/* Individual Rotor Form Styling */
+.rotor-options {
+    width: 100%;
+    flex: 1 1 0;
+    /* Prevent rotors from becoming too narrow */
+    min-width: 260px;
+    background: #222;
+    border: 2px solid #444;
+    border-radius: 8px;
+    padding: 12px 8px 8px 8px;
+    margin-bottom: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+}
+.rotor-options h3 {
+    color: #f39c12;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    text-shadow: 0 0 5px #f39c12;
+}
+.rotor-options label {
+    color: #ecf0f1;
+    font-size: 0.98rem;
+    margin-top: 6px;
+    margin-bottom: 2px;
+    display: block;
+}
+.rotor-options select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    background: #1a1a1a;
+    color: #ecf0f1;
+    border: 2px solid #555;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+/* Plugboard Section Styling */
+.plugboard-section select {
+    margin-right: 8px;
+    margin-bottom: 8px;
+    background: #1a1a1a;
+    color: #ecf0f1;
+    border: 2px solid #555;
+    border-radius: 5px;
+    font-size: 1rem;
+    padding: 8px;
+}
+.plugboard-section button[type="button"] {
+    background: #27ae60;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    font-size: 1rem;
+    margin-left: 8px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: background 0.2s;
+}
+.plugboard-section button[type="button"]:hover {
+    background: #219150;
+}
+.plugboard-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.plugboard-section li {
+    background: #222;
+    color: #fff;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.plugboard-section p {
+    margin: 0;
+    font-size: 1rem;
+    color: #aaa;
+}
+.plugboard-section button[type="button"]:last-child {
+    background: #e74c3c;
+    margin-left: 12px;
+}
+.plugboard-section button[type="button"]:last-child:hover {
+    background: #c0392b;
+}
+
+/* General page centering for auth/home/account panels */
+.page-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    font-family: 'Courier New', monospace;
+}
+.main-panel {
+    background: linear-gradient(145deg, #8b4513, #a0522d);
+    border: 8px solid #654321;
+    border-radius: 15px;
+    padding: 40px 32px 32px 32px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    width: 100%;
+    max-width: 420px;
+    min-width: 0;
+    margin: 0 auto;
+    text-align: center;
+}
+.main-title {
+    color: #f39c12;
+    margin-bottom: 30px;
+    text-shadow: 0 0 10px #f39c12;
+    font-size: 2rem;
+    font-weight: bold;
+}
+.main-desc {
+    color: #ecf0f1;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+}
+.main-btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+.main-btn {
+    background: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 36px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    margin-bottom: 10px;
+    transition: background 0.2s;
+}
+.main-btn-signup {
+    background: #27ae60;
+}
+.main-btn-login {
+    background: #3498db;
+}
+.main-btn-back {
+    background: #3498db;
+    margin-bottom: 16px;
+    padding: 8px 18px;
+    font-size: 1rem;
+}
+.main-btn-save {
+    background: #27ae60;
+    margin-top: 10px;
+}
+.main-btn-delete {
+    background: #e74c3c;
+    margin-top: 10px;
+}
+.main-btn-logout {
+    background: #888;
+    margin-top: 32px;
+}
+.main-btn:hover {
+    background: #217dbb;
+}
+.main-btn-signup:hover {
+    background: #219150;
+}
+.main-btn-delete:hover {
+    background: #c0392b;
+}
+.main-form {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: left;
+}
+.main-form-group {
+    margin-bottom: 18px;
+}
+.main-label {
+    display: block;
+    color: #ecf0f1;
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+.main-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #555;
+    border-radius: 5px;
+    background: #1a1a1a;
+    color: #ecf0f1;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+.main-error {
+    color: #e74c3c;
+    margin-bottom: 10px;
+    text-align: center;
+    padding: 10px;
+    background: #2c2c2c;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+.main-link-row {
+    text-align: center;
+    color: #ecf0f1;
+    margin-top: 10px;
+    font-size: 0.98rem;
+}
+.main-link-btn {
+    background: none;
+    border: none;
+    color: #3498db;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 1rem;
+    margin-left: 4px;
+}
+.main-section-title {
+    color: #27ae60;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    text-shadow: 0 0 5px #27ae60;
+}
+@media (max-width: 900px) {
+    .main-panel {
+        max-width: 98vw;
+        padding: 28px 8vw 24px 8vw;
+    }
+}
+@media (max-width: 700px) {
+    .main-panel {
+        max-width: 100vw;
+        padding: 18px 2vw 16px 2vw;
+    }
+    .main-title {
+        font-size: 1.3rem;
+    }
+    .main-btn {
+        font-size: 1rem;
+        padding: 10px 18px;
+    }
+}
+@media (max-width: 480px) {
+    .main-panel {
+        padding: 8px 0 8px 0;
+        border-width: 4px;
+    }
+    .main-title {
+        font-size: 1.1rem;
+    }
+    .main-btn {
+        font-size: 0.95rem;
+        padding: 8px 8px;
+    }
+    .main-input {
+        font-size: 0.95rem;
+        padding: 8px;
+    }
+}
+
+/* Responsive Design for Config Page */
+
+/* Large screens (1200px and below) - Stack rotors vertically */
+@media (max-width: 1200px) {
+    .rotor-settings-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    .rotor-settings-col {
+        margin-bottom: 12px;
+        width: 100%;
+    }
+    .rotor-options {
+        min-width: 0;
+        width: 100%;
+        padding: 16px 12px 12px 12px;
+    }
+    .rotor-options h3 {
+        font-size: 1.2rem;
+    }
+    .rotor-options label {
+        font-size: 1.1rem;
+    }
+    .rotor-options select {
+        font-size: 1.1rem;
+        padding: 10px;
+    }
+}
+
+/* Medium screens (900px and below) - Stack bottom sections vertically */
+@media (max-width: 900px) {
+    .config-form-panel {
+        max-width: 98vw;
+        padding: 28px 8vw 24px 8vw;
+        min-width: 0;
+    }
+    .config-bottom-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    .config-bottom-col {
+        margin-bottom: 18px;
+    }
+}
+
+/* Small screens (700px and below) - Optimize for tablets */
+@media (max-width: 700px) {
+    .config-form-panel {
+        max-width: 100vw;
+        padding: 14px 2vw 12px 2vw;
+        min-width: 0;
+        border-width: 6px;
+    }
+    .config-title {
+        font-size: 1.3rem;
+    }
+    .config-section-header {
+        font-size: 1rem;
+    }
+    .config-submit-btn {
+        font-size: 1rem;
+        padding: 10px;
+    }
+    .rotor-options {
+        padding: 12px 8px 8px 8px;
+    }
+    .rotor-options h3 {
+        font-size: 1.1rem;
+    }
+    .rotor-options label {
+        font-size: 1rem;
+    }
+    .rotor-options select {
+        font-size: 1rem;
+        padding: 8px;
+    }
+}
+
+/* Mobile screens (480px and below) - Optimize for phones */
+@media (max-width: 480px) {
+    .config-form-panel {
+        padding: 6px 0 6px 0;
+        border-width: 3px;
+    }
+    .config-title {
+        font-size: 1.05rem;
+    }
+    .config-section-header {
+        font-size: 0.95rem;
+    }
+    .config-submit-btn {
+        font-size: 0.95rem;
+        padding: 7px;
+    }
+    .rotor-options {
+        padding: 8px 4px 4px 4px;
+    }
+    .rotor-options h3 {
+        font-size: 1rem;
+    }
+    .rotor-options label {
+        font-size: 0.95rem;
+    }
+    .rotor-options select {
+        font-size: 0.95rem;
+        padding: 6px;
+    }
+    .plugboard-section select, .plugboard-section button[type="button"] {
+        font-size: 0.95rem;
+        padding: 6px;
+    }
+}
+
+/* Config page container responsive adjustments */
+@media (max-width: 700px) {
+    .config-page-container {
+        align-items: flex-start;
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+}
+@media (max-width: 480px) {
+    .config-page-container {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+    }
+}
