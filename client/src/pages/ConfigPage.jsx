@@ -1,9 +1,10 @@
 // imports /////////////////////////////////////////////////////////////////////
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EnigmaMachine from "../components/EnigmaMachine";
 import RotorSettings from "../components/RotorSettings";
 import PlugboardSettings from "../components/PlugboardSettings";
+import axios from "axios";
 
 // configuration function //////////////////////////////////////////////////////
 
@@ -53,12 +54,116 @@ export default function ConfigPage({ user_id }) {
     // set initial config status
     const [submittedConfig, setSubmittedConfig] = useState(null);
 
-    // when the submit button is pressed
-    function handleSubmit(event) {
+    // State for saved configs management
+    // Array of user's saved configurations
+    const [savedConfigs, setSavedConfigs] = useState([]);
+    // Loading state for fetching configs
+    const [loadingConfigs, setLoadingConfigs] = useState(false);
+    // Error message for config operations
+    const [configsError, setConfigsError] = useState("");
+    // ID of config being deleted (for UI feedback)
+    const [deletingConfigId, setDeletingConfigId] = useState(null);
+    // Loading state for save operations
+    const [savingConfig, setSavingConfig] = useState(false);
+    // Success/error messages for save operations
+    const [saveStatus, setSaveStatus] = useState("");
 
+    // Fetch saved configs when user_id changes
+    useEffect(() => {
+        if (!user_id) return;
+        fetchSavedConfigs();
+    }, [user_id]);
+
+    /**
+     * Fetch saved configurations from the database
+     * Currently uses mock data - replace with actual API call when backend is ready
+     */
+    const fetchSavedConfigs = async () => {
+        setLoadingConfigs(true);
+        setConfigsError("");
+        try {
+            // TODO: Replace with actual API endpoint when backend is ready
+            // const response = await axios.get(`/configs?user_id=${user_id}`);
+            // setSavedConfigs(response.data.configs || []);
+            
+            // Mock data for demonstration - remove when backend is ready
+            setSavedConfigs([
+                {
+                    config_id: 1,
+                    name: "Default Config",
+                    rotors: [
+                        { spec: "III", ringSetting: 0, startPosition: 0 },
+                        { spec: "II", ringSetting: 0, startPosition: 0 },
+                        { spec: "I", ringSetting: 0, startPosition: 0 },
+                    ],
+                    reflector: "UKW_B",
+                    plugboardPairs: [["A", "B"], ["C", "D"]],
+                },
+                {
+                    config_id: 2,
+                    name: "Custom Setup",
+                    rotors: [
+                        { spec: "II", ringSetting: 5, startPosition: 10 },
+                        { spec: "I", ringSetting: 3, startPosition: 15 },
+                        { spec: "III", ringSetting: 7, startPosition: 20 },
+                    ],
+                    reflector: "UKW_C",
+                    plugboardPairs: [["E", "F"], ["G", "H"], ["I", "J"]],
+                }
+            ]);
+        } catch (err) {
+            setConfigsError("Failed to load saved configurations.");
+        } finally {
+            setLoadingConfigs(false);
+        }
+    };
+
+    /**
+     * Load a saved configuration into the form
+     * Populates all form fields with the selected configuration's settings
+     * @param {Object} config - The configuration object to load
+     */
+    const handleLoadConfig = (config) => {
+        setRotor1(config.rotors[0]);
+        setRotor2(config.rotors[1]);
+        setRotor3(config.rotors[2]);
+        setReflector(config.reflector);
+        setPlugboardPairs(config.plugboardPairs);
+        setSaveStatus("Configuration loaded!");
+        setTimeout(() => setSaveStatus(""), 2000);
+    };
+
+    /**
+     * Delete a saved configuration
+     * Shows confirmation dialog and removes the config from the saved list
+     * @param {number} config_id - The ID of the configuration to delete
+     */
+    const handleDeleteConfig = async (config_id) => {
+        if (!window.confirm("Delete this configuration?")) return;
+        setDeletingConfigId(config_id);
+        try {
+            // TODO: Replace with actual API endpoint when backend is ready
+            // await axios.delete(`/configs/${config_id}`);
+            
+            // Mock deletion for demonstration - remove when backend is ready
+            setSavedConfigs((configs) => configs.filter((config) => config.config_id !== config_id));
+        } catch (err) {
+            alert("Failed to delete configuration.");
+        } finally {
+            setDeletingConfigId(null);
+        }
+    };
+
+
+
+    /**
+     * Handle form submission (legacy function - now replaced by handleSaveAndUse)
+     * This function is kept for potential future use but is not currently called
+     */
+    function handleSubmit(event) {
         event.preventDefault();
 
-        // craft the config package
+        // Create config object from current form state
         const config = {
             rotors: [rotor1, rotor2, rotor3],
             reflector: reflector,
@@ -74,9 +179,61 @@ export default function ConfigPage({ user_id }) {
         // TODO: call the enigma machine with new config
 
         setSubmittedConfig(config);
-  }
+    }
 
-  // check if submitted the config file
+    /**
+     * Save and use the current configuration
+     * Prompts user for optional config name, saves if provided, then uses the config
+     * This combines saving and using into a single action for better UX
+     */
+    const handleSaveAndUse = async () => {
+        setSavingConfig(true);
+        setSaveStatus("");
+        
+        // Prompt for optional configuration name
+        const configName = prompt("Enter a name for this configuration (optional):");
+        
+        // Create config object from current form state
+        const config = {
+            rotors: [rotor1, rotor2, rotor3],
+            reflector: reflector,
+            plugboardPairs: plugboardPairs,
+        };
+
+        try {
+            // Save config to database if name was provided
+            if (configName) {
+                // TODO: Replace with actual API endpoint when backend is ready
+                // const response = await axios.post("/configs", {
+                //     user_id,
+                //     name: configName,
+                //     ...config
+                // });
+                
+                // Mock save for demonstration - remove when backend is ready
+                const newConfig = {
+                    // Temporary ID generation
+                    config_id: Date.now(),
+                    name: configName,
+                    ...config
+                };
+                setSavedConfigs((configs) => [newConfig, ...configs]);
+                setSaveStatus("Configuration saved and loaded!");
+            } else {
+                setSaveStatus("Configuration loaded!");
+            }
+            
+            // Use the configuration with the Enigma machine
+            setSubmittedConfig(config);
+        } catch (err) {
+            setSaveStatus("Error saving configuration.");
+        } finally {
+            setSavingConfig(false);
+            setTimeout(() => setSaveStatus(""), 3000);
+        }
+    };
+
+  // Check if configuration has been submitted - if so, show the Enigma machine
   if(submittedConfig) {
     return <EnigmaMachine config={submittedConfig} user_id={user_id} config_id={1}/>
   }
@@ -86,7 +243,50 @@ export default function ConfigPage({ user_id }) {
         <div className="config-page-container">
             <div className="config-form-panel">
                 <div className="config-title">Enigma Machine Configuration</div>
-                <form onSubmit={handleSubmit}>
+                
+                {/* Saved Configurations Section - Display user's saved configs */}
+                <div className="saved-configs-section">
+                    <div className="config-section-header">Saved Configurations</div>
+                    {loadingConfigs ? (
+                        <div className="loading-text">Loading configurations...</div>
+                    ) : configsError ? (
+                        <div className="error-text">{configsError}</div>
+                    ) : savedConfigs.length === 0 ? (
+                        <div className="no-configs-text">No saved configurations yet.</div>
+                    ) : (
+                        <div className="saved-configs-list">
+                            {savedConfigs.map(config => (
+                                <div key={config.config_id} className="saved-config-item">
+                                    <div className="config-info">
+                                        <div className="config-name">{config.name}</div>
+                                        <div className="config-details">
+                                            Rotors: {config.rotors.map(r => r.spec).join('-')} | 
+                                            Reflector: {config.reflector} | 
+                                            Plugboard: {config.plugboardPairs.length} pairs
+                                        </div>
+                                    </div>
+                                    <div className="config-actions">
+                                        <button
+                                            onClick={() => handleLoadConfig(config)}
+                                            className="config-btn config-btn-load"
+                                        >
+                                            Load
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteConfig(config.config_id)}
+                                            disabled={deletingConfigId === config.config_id}
+                                            className="config-btn config-btn-delete"
+                                        >
+                                            {deletingConfigId === config.config_id ? "Deleting..." : "Delete"}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <form>
                     <div className="rotor-section-row">
                         <div className="config-section">
                             <div className="config-section-header">Rotors Selection</div>
@@ -116,7 +316,23 @@ export default function ConfigPage({ user_id }) {
                             </div>
                         </div>
                     </div>
-                    <button className="config-submit-btn" type="submit">Submit Configuration</button>
+                    {/* Action Buttons - Single button that saves (optional) and uses the configuration */}
+                    <div className="config-actions-row">
+                        <button 
+                            type="button" 
+                            onClick={handleSaveAndUse}
+                            disabled={savingConfig}
+                            className="config-submit-btn"
+                        >
+                            {savingConfig ? "Loading..." : "Use Configuration"}
+                        </button>
+                    </div>
+                    {/* Status Messages - Show success/error feedback */}
+                    {saveStatus && (
+                        <div className={`save-status ${saveStatus.includes("Error") ? "error" : "success"}`}>
+                            {saveStatus}
+                        </div>
+                    )}
                 </form>
             </div>
         </div>
