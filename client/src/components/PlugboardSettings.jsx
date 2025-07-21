@@ -52,7 +52,7 @@ export default function PlugboardSettings({ plugboardPairs, setPlugboardPairs })
                 {letter}
             </option>
             ))}
-      </select>
+        </select>
 
         {/* get the second letter for the plugboard */}
         <select value={secondLetter} onChange={(event) => setSecondLetter(event.target.value)}>
@@ -65,9 +65,9 @@ export default function PlugboardSettings({ plugboardPairs, setPlugboardPairs })
                     {letter}
                 </option>
             ))}
-      </select>
+       </select>
 
-      <button type="button" onClick={addPair}>Add Pair To Plugboard</button>
+        <button type="button" onClick={addPair}>Add Pair To Plugboard</button>
 
         {/* display all current plugboard pairs */}
         <ul>
