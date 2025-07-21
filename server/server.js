@@ -225,6 +225,137 @@ app.post("/delete-account", async (req, res) => {
         res.status(500).json({ error: "Server error during account deletion" });
     }
 });
+//Save new config
+app.post("/configs", async (req, res) => {
+    const { user_id, name, rotors, reflector, plugboardPairs } = req.body;
+    if (!user_id || !rotors || rotors.length !== 3 || !reflector ) {
+        return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    const [r1, r2, r3] = rotors;
+    const plugboard = plugboardPairs.map(pair => pair.join("-")).join(",");
+    
+    try {
+        const result = await db.query(
+            `INSERT INTO configs (
+                user_id, name, 
+                rotator_one, rotator_two, rotator_three,
+                rotator_one_ring_setting, rotator_two_ring_setting, rotator_three_ring_setting,
+                rotator_one_ring_pos, rotator_two_ring_pos, rotator_three_ring_pos,
+                reflector, plugboard
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+            ) RETURNING config_id`,
+            [user_id, name||null,
+                r1.spec, r2.spec, r3.spec,
+                r1.ringSetting, r2.ringSetting, r3.ringSetting,
+                r1.startPosition, r2.startPosition, r3.startPosition,
+                reflector, plugboard]
+        );
+        //format response to match frontend
+        const config = result.rows[0];
+        const formattedConfig = {
+            config_id: config.config_id,
+            user_id: config.user_id,
+            name: config.name,
+            reflector: config.reflector,
+            rotors: [
+                {
+                    spec: config.rotator_one,
+                    ringSetting: config.rotator_one_ring_setting,
+                    startPosition: config.rotator_one_ring_pos
+                },
+                {
+                    spec: config.rotator_two,
+                    ringSetting: config.rotator_two_ring_setting,
+                    startPosition: config.rotator_two_ring_pos
+                },
+                {
+                    spec: config.rotator_three,
+                    ringSetting: config.rotator_three_ring_setting,
+                    startPosition: config.rotator_three_ring_pos
+                }
+            ],
+            plugboardPairs: config.plugboard 
+                ? config.plugboard.split(",").map(pair => pair.split("-"))
+                : []
+        };
+        res.status(201).json({ config: formattedConfig });
+    } catch (err) {
+        console.error("Error saving config:", err);
+        res.status(500).json({ error: "Failed to save configuration." });
+    }
+});
+//Get saved configs
+app.get("/configs", async (req, res) => {
+    const { user_id } = req.query;
+    if (!user_id) {
+        return res.status(400).json({ error: "user_id is required" });
+    }
+    try {
+        const result = await db.query(
+            `SELECT config_id, user_id, name, 
+                rotator_one, rotator_two, rotator_three,
+                rotator_one_ring_setting, rotator_two_ring_setting, rotator_three_ring_setting,
+                rotator_one_ring_pos, rotator_two_ring_pos, rotator_three_ring_pos,
+                reflector, plugboard
+             FROM configs
+             WHERE user_id = $1
+             ORDER BY config_id DESC`,
+            [user_id]
+        );
+
+        const configs = result.rows.map(config => ({
+            config_id: config.config_id,
+            user_id: config.user_id,
+            name:config.name,
+            reflector: config.reflector,
+            rotors: [
+                {
+                    spec: config.rotator_one,
+                    ringSetting: config.rotator_one_ring_setting,
+                    startPosition: config.rotator_one_ring_pos
+                },
+                {
+                    spec: config.rotator_two,
+                    ringSetting: config.rotator_two_ring_setting,
+                    startPosition: config.rotator_two_ring_pos
+                },
+                {
+                    spec: config.rotator_three,
+                    ringSetting: config.rotator_three_ring_setting,
+                    startPosition: config.rotator_three_ring_pos
+                }
+            ],
+            plugboardPairs: config.plugboard 
+                ? config.plugboard.split(",").map(pair => pair.split("-"))
+                : []
+        }));
+
+        res.json({ configs });
+    } catch (err) {
+        console.error("Error fetching configs:", err);
+        res.status(500).json({ error: "Failed to fetch configurations." });
+    }
+});
+//delete saved configs
+app.delete("/configs/:config_id", async (req, res) => {
+    const { config_id } = req.params;
+    try {
+        const result = await db.query(
+            "DELETE FROM configs WHERE config_id = $1 RETURNING *",
+            [config_id]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Configuration not found" });
+        }
+        res.json({ message: "Configuration deleted" });
+    } catch (err) {
+        console.error("Error deleting config:", err);
+        res.status(500).json({ error: "Failed to delete configuration" });
+    }
+});
+
 
 // listening log ///////////////////////////////////////////////////////////////
 
