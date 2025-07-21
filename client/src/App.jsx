@@ -135,21 +135,7 @@ function App() {
         }
     };
 
-    // Navigation bar (don't love this)
-    const renderNav = () => (
-        <nav style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "20px",
-            background: "#222",
-            padding: "10px 0",
-            marginBottom: "20px",
-        }}>
-            <button onClick={() => setCurrentPage("home")} style={{ color: "#f39c12", background: "none", border: "none", fontSize: "16px", cursor: "pointer" }}>Home</button>
-            <button onClick={() => setCurrentPage("login")} style={{ color: "#3498db", background: "none", border: "none", fontSize: "16px", cursor: "pointer" }}>Login</button>
-            <button onClick={() => setCurrentPage("signup")} style={{ color: "#27ae60", background: "none", border: "none", fontSize: "16px", cursor: "pointer" }}>Sign Up</button>
-        </nav>
-    );
+
 
     // Dropdown menu for logged-in users, shown on all pages except home.
     // The options are hardcoded in alphabetical order, with Logout always last.
@@ -196,7 +182,7 @@ function App() {
                             color: "#3498db",
                             border: "none",
                             padding: "12px 20px",
-                            textAlign: "left",
+                            textAlign: "right",
                             cursor: "pointer",
                             fontSize: 16
                         }}
@@ -211,7 +197,7 @@ function App() {
                             color: "#27ae60",
                             border: "none",
                             padding: "12px 20px",
-                            textAlign: "left",
+                            textAlign: "right",
                             cursor: "pointer",
                             fontSize: 16
                         }}
@@ -223,10 +209,10 @@ function App() {
                         style={{
                             width: "100%",
                             background: "none",
-                            color: "#2980b9",
+                            color: "#f39c12",
                             border: "none",
                             padding: "12px 20px",
-                            textAlign: "left",
+                            textAlign: "right",
                             cursor: "pointer",
                             fontSize: 16
                         }}
@@ -242,7 +228,7 @@ function App() {
                             color: "#e74c3c",
                             border: "none",
                             padding: "12px 20px",
-                            textAlign: "left",
+                            textAlign: "right",
                             cursor: "pointer",
                             fontSize: 16
                         }}

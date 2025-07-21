@@ -34,13 +34,13 @@ export default function ConfigPage({ user_id }) {
     });
 
     const [rotor2, setRotor2] = useState({
-        spec: "I",
+        spec: "II",
         startPosition: 0,
         ringSetting: 0,
     });
 
     const [rotor3, setRotor3] = useState({
-        spec: "I",
+        spec: "III",
         startPosition: 0,
         ringSetting: 0,
     });
@@ -76,41 +76,13 @@ export default function ConfigPage({ user_id }) {
 
     /**
      * Fetch saved configurations from the database
-     * Currently uses mock data - replace with actual API call when backend is ready
      */
     const fetchSavedConfigs = async () => {
         setLoadingConfigs(true);
         setConfigsError("");
         try {
-            // TODO: Replace with actual API endpoint when backend is ready
-            // const response = await axios.get(`/configs?user_id=${user_id}`);
-            // setSavedConfigs(response.data.configs || []);
-            
-            // Mock data for demonstration - remove when backend is ready
-            setSavedConfigs([
-                {
-                    config_id: 1,
-                    name: "Default Config",
-                    rotors: [
-                        { spec: "III", ringSetting: 0, startPosition: 0 },
-                        { spec: "II", ringSetting: 0, startPosition: 0 },
-                        { spec: "I", ringSetting: 0, startPosition: 0 },
-                    ],
-                    reflector: "UKW_B",
-                    plugboardPairs: [["A", "B"], ["C", "D"]],
-                },
-                {
-                    config_id: 2,
-                    name: "Custom Setup",
-                    rotors: [
-                        { spec: "II", ringSetting: 5, startPosition: 10 },
-                        { spec: "I", ringSetting: 3, startPosition: 15 },
-                        { spec: "III", ringSetting: 7, startPosition: 20 },
-                    ],
-                    reflector: "UKW_C",
-                    plugboardPairs: [["E", "F"], ["G", "H"], ["I", "J"]],
-                }
-            ]);
+            const response = await axios.get(`/configs?user_id=${user_id}`);
+            setSavedConfigs(response.data.configs || []);
         } catch (err) {
             setConfigsError("Failed to load saved configurations.");
         } finally {
@@ -142,10 +114,7 @@ export default function ConfigPage({ user_id }) {
         if (!window.confirm("Delete this configuration?")) return;
         setDeletingConfigId(config_id);
         try {
-            // TODO: Replace with actual API endpoint when backend is ready
-            // await axios.delete(`/configs/${config_id}`);
-            
-            // Mock deletion for demonstration - remove when backend is ready
+            await axios.delete(`/configs/${config_id}`);
             setSavedConfigs((configs) => configs.filter((config) => config.config_id !== config_id));
         } catch (err) {
             alert("Failed to delete configuration.");
@@ -203,20 +172,12 @@ export default function ConfigPage({ user_id }) {
         try {
             // Save config to database if name was provided
             if (configName) {
-                // TODO: Replace with actual API endpoint when backend is ready
-                // const response = await axios.post("/configs", {
-                //     user_id,
-                //     name: configName,
-                //     ...config
-                // });
-                
-                // Mock save for demonstration - remove when backend is ready
-                const newConfig = {
-                    // Temporary ID generation
-                    config_id: Date.now(),
+                const newConfig = await axios.post("/configs", {
+                    user_id,
                     name: configName,
-                    ...config
-                };
+                    rotors: [rotor1, rotor2, rotor3],
+                    reflector,
+                    plugboardPairs});
                 setSavedConfigs((configs) => [newConfig, ...configs]);
                 setSaveStatus("Configuration saved and loaded!");
             } else {
@@ -258,7 +219,7 @@ export default function ConfigPage({ user_id }) {
                             {savedConfigs.map(config => (
                                 <div key={config.config_id} className="saved-config-item">
                                     <div className="config-info">
-                                        <div className="config-name">{config.name}</div>
+                                        <div className="config-name">ID:{config.config_id}, Name:{config.name || "Unnamed Config"}</div>
                                         <div className="config-details">
                                             Rotors: {config.rotors.map(r => r.spec).join('-')} | 
                                             Reflector: {config.reflector} | 
@@ -309,7 +270,7 @@ export default function ConfigPage({ user_id }) {
                         </div>
                         <div className="config-bottom-col">
                             <div className="config-section">
-                                <div className="config-section-header">Plugboard Section</div>
+                                <div className="config-section-header">Plugboard Selection</div>
                                 <div className="plugboard-section">
                                     <PlugboardSettings plugboardPairs={plugboardPairs} setPlugboardPairs={setPlugboardPairs}/>
                                 </div>

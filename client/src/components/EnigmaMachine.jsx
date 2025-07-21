@@ -99,6 +99,14 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
             setSaveStatus("Error saving message.");
         }
     };
+    // Restart message
+    const handleRestartMessage = () => {
+        setInputMessage("");
+        setOutputMessage("");
+        setSaveStatus("");
+        rotorsRef.current.forEach(rotor => rotor.restart()); 
+        setRotorPositions(rotorsRef.current.map(r => r.rotorPos));
+    };
 
     // Delete a saved message
     const handleDeleteMessage = async (message_id) => {
@@ -162,6 +170,24 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
                         <h4>Output</h4>
                         <div className="message-text">{outputMessage}</div>
                     </div>
+
+                    {/* Restart Message Button */}
+                    <button
+                        onClick={handleRestartMessage}
+                        style={{
+                            marginTop: "12px",
+                            padding: "10px 20px",
+                            background: "#e74c3c",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "5px",
+                            fontSize: "16px",
+                            cursor: "pointer"
+                        }}
+                    >
+                        Restart Mesage
+                    </button>
+                    
                     {/* Save Message Button */}
                     <button
                         onClick={handleSaveMessage}
@@ -178,6 +204,7 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
                     >
                         Save Message
                     </button>
+
                     {/* Save status feedback */}
                     {saveStatus && (
                         <div style={{ marginTop: "8px", color: saveStatus === "Message saved!" ? "#27ae60" : "#e74c3c" }}>

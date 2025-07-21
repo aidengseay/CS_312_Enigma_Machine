@@ -38,6 +38,7 @@ export class Rotator {
         this.wiring = wiring;
         this.notch = notch;
         this.ringSetting = ringSetting;
+        this.startPos = rotorPos;
         this.rotorPos = rotorPos;
 
         // calculate the turnover index from the ring setting
@@ -52,6 +53,11 @@ export class Rotator {
                                          String.fromCharCode(index + UNICODE_A);
         }
     }
+    //restart rotors
+    restart() {
+        this.rotorPos = this.startPos;
+    }
+
 
     step() {
 
