@@ -185,7 +185,7 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
                             cursor: "pointer"
                         }}
                     >
-                        Restart Mesage
+                        Restart Message
                     </button>
                     
                     {/* Save Message Button */}

@@ -123,32 +123,30 @@ export default function ConfigPage({ user_id }) {
         }
     };
 
-
-
     /**
      * Handle form submission (legacy function - now replaced by handleSaveAndUse)
      * This function is kept for potential future use but is not currently called
      */
-    function handleSubmit(event) {
-        event.preventDefault();
+    // function handleSubmit(event) {
+    //     event.preventDefault();
 
-        // Create config object from current form state
-        const config = {
-            rotors: [rotor1, rotor2, rotor3],
-            reflector: reflector,
-            plugboardPairs: plugboardPairs,
-        };
+    //     // Create config object from current form state
+    //     const config = {
+    //         rotors: [rotor1, rotor2, rotor3],
+    //         reflector: reflector,
+    //         plugboardPairs: plugboardPairs,
+    //     };
 
-        console.log("Submitted Config:", config);
+    //     console.log("Submitted Config:", config);
 
-        // TODO: send config to the database
+    //     // TODO: send config to the database
 
-        // TODO: get the config to get the config id
+    //     // TODO: get the config to get the config id
 
-        // TODO: call the enigma machine with new config
+    //     // TODO: call the enigma machine with new config
 
-        setSubmittedConfig(config);
-    }
+    //     setSubmittedConfig(config);
+    // }
 
     /**
      * Save and use the current configuration
@@ -194,7 +192,8 @@ export default function ConfigPage({ user_id }) {
         }
     };
 
-  // Check if configuration has been submitted - if so, show the Enigma machine
+  // Check if configuration has been submitted, show the Enigma machine
+  // TODO: we need to change the config id to an actual value
   if(submittedConfig) {
     return <EnigmaMachine config={submittedConfig} user_id={user_id} config_id={1}/>
   }
