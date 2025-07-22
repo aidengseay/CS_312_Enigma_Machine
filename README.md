@@ -7,8 +7,11 @@ Developed by Aiden Seay, Victor Rodriguez, and Nasya Valenzuela
 
 This repository contains files to run an online enigma machine emulator. Users will be able to encode and decode secret messages accurate to the Enigma M3 series used by the Germans in WWII. This machine's encryption algorithm was broken by Alan Turing and his team at Bletchley Park.
 
-<img align="center" src="git-images/emualtor.png"/>
+<img align="center" src="git-images/emulator.png"/>
 <p align="center" ><em>Main Emulator Page</em></p>
+
+<img align="center" src="git-images/config.png"/>
+<p align="center" ><em>Configuration Page</em></p>
 
 ### Project Components
 
@@ -16,28 +19,27 @@ This repository contains files to run an online enigma machine emulator. Users w
 
 * Interactive user interface that allows users to input text and see their encoded or decoded message
 
-#### Enigma Machine Configuration (Not Implemented)
+#### Enigma Machine Configuration
 
 * A page that will allow users to customize the machine state to create different encryption settings
 * The configuration options include swapping rotors, 3 rotating rotors, and a plugboard
 * Each configuration can be saved by the user for later use
 
-#### Visual Encryption Steps (Partially Implemented)
+#### Visual Encryption Steps
 
 * As each key is pressed on the keyboard, the onscreen keyboard will light up the letter pressed and the letter it is encoded to
 * The rotors will rotate realistically with each keypress
-* The steps for each keypress will be shown at the bottom of the screen (Not Implemented)
 
-#### User Accounts and Saved Posts (Partially Implemented)
+#### User Accounts and Saved Posts
 
 * Users can create an account to save their encoded or decoded messages to their profile
 * User accounts will have their passwords hashed in the database
-* Users can save their favorite configurations (Not Implemented)
+* Users can save their favorite configurations
 
-#### Manage Account (Not Implemented)
+#### Manage Account
 
 * Users can delete their saved messages and configurations
-* Users can edit their saved machine configurations
+* Users can edit their saved machine configurations - Will not overwrite
 
 ## Set up
 
