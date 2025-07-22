@@ -15,9 +15,22 @@ import axios from "axios";
 
 // EnigmaMachine component /////////////////////////////////////////////////////
 // This component simulates the Enigma machine UI and logic
-export default function EnigmaMachine({ config, user_id, config_id}) {
-    // --- Plugboard setup ---
-    // Use a ref to persist the plugboard instance across renders
+export default function EnigmaMachine({ config, user_id, config_id, onBackToConfig }) {
+    // Debug log: show the config received by EnigmaMachine
+    console.log('EnigmaMachine config:', config);
+    // Guard: Only render if config is valid
+    if (
+      !config ||
+      !Array.isArray(config.rotors) ||
+      config.rotors.length !== 3 ||
+      config.rotors.some(r => !r.spec) ||
+      !config.reflector
+    ) {
+      return <div style={{ color: 'red', textAlign: 'center', marginTop: 40 }}>
+        Invalid or incomplete configuration. Please select or save a valid config.
+      </div>;
+    }
+    // Plugboard setup: use a ref to persist the plugboard instance across renders
     const plugboardRef = useRef(new Plugboard());
 
     // On config change, set up plugboard pairs
@@ -31,8 +44,7 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
         });
     }, [config]);
 
-    // --- Rotors setup ---
-    // Use a ref to persist the rotors array across renders
+    // Rotors setup: use a ref to persist the rotors array across renders
     const rotorsRef = useRef(
         config.rotors.map((rotor) => {
             const rotorSpec = ROTORS[rotor.spec]
@@ -41,11 +53,10 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
         })
     );
 
-    // --- Reflector setup ---
-    // Use a ref to persist the reflector instance
+    // Reflector setup: use a ref to persist the reflector instance
     const reflectorRef = useRef(new Reflector(REFLECTORS[config.reflector].wiring));
 
-    // --- State for input/output and rotor positions ---
+    // State for input/output and rotor positions
     // Save user's input
     const [inputMessage, setInputMessage] = useState("");
     // Save encoded output
@@ -77,7 +88,7 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
             .finally(() => setLoadingMessages(false));
     }, [user_id]);
 
-    // --- Save message handler ---
+    // Save message handler
     const handleSaveMessage = async () => {
         setSaveStatus("");
         if (!outputMessage.trim()) {
@@ -92,6 +103,13 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
             });
             if (response.data && response.data.message === "Message saved successfully") {
                 setSaveStatus("Message saved!");
+                // Re-fetch messages
+                const res = await axios.get(`/messages?user_id=${user_id}`);
+                setSavedMessages(res.data.messages || []);
+                // Clear input/output
+                setInputMessage("");
+                setOutputMessage("");
+                return;
             } else {
                 setSaveStatus("Failed to save message.");
             }
@@ -99,7 +117,8 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
             setSaveStatus("Error saving message.");
         }
     };
-    // Restart message
+
+    // Restart message handler
     const handleRestartMessage = () => {
         setInputMessage("");
         setOutputMessage("");
@@ -122,7 +141,7 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
         }
     };
 
-    // --- Handle key presses from the keyboard ---
+    // Handle key presses from the keyboard
     const handleKeyPress = (letter) => {
         if (letter === " ") {
             // If space, add space to both input and output (no encoding)
@@ -140,9 +159,33 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
         }
     };
 
-    // --- Render the Enigma Machine UI ---
+    // Render the Enigma Machine UI
     return (
         <div className="enigma-machine">
+            {/* Back to Configurations button (always visible) */}
+            <div style={{ marginBottom: 12, textAlign: "left" }}>
+                <button
+                    onClick={onBackToConfig}
+                    style={{
+                        background: "#444",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 6,
+                        padding: "8px 18px",
+                        fontSize: 15,
+                        cursor: "pointer",
+                        marginBottom: 8
+                    }}
+                >
+                    ← Back to Configurations
+                </button>
+            </div>
+            {/* Display current config name */}
+            <div style={{ marginBottom: 16, textAlign: "center" }}>
+                <span style={{ fontWeight: 600, fontSize: 18, color: "#27ae60" }}>
+                    Current Config: {config.name}
+                </span>
+            </div>
             {/* Rotor panel at the top showing current rotor positions */}
             <div className="rotor-panel">
                 <div className="rotor-display">
@@ -157,7 +200,6 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
                     </div>
                 </div>
             </div>
-
             {/* Main content: left = input/output, right = lampboard + keyboard */}
             <div className="main-content">
                 {/* Left: Input/Output message panel */}
@@ -170,7 +212,6 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
                         <h4>Output</h4>
                         <div className="message-text">{outputMessage}</div>
                     </div>
-
                     {/* Restart Message Button */}
                     <button
                         onClick={handleRestartMessage}
@@ -187,7 +228,6 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
                     >
                         Restart Message
                     </button>
-                    
                     {/* Save Message Button */}
                     <button
                         onClick={handleSaveMessage}
@@ -204,7 +244,6 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
                     >
                         Save Message
                     </button>
-
                     {/* Save status feedback */}
                     {saveStatus && (
                         <div style={{ marginTop: "8px", color: saveStatus === "Message saved!" ? "#27ae60" : "#e74c3c" }}>
@@ -223,9 +262,26 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
                         ) : (
                             <ul style={{ maxHeight: 200, overflowY: "auto", padding: 0, listStyle: "none" }}>
                                 {savedMessages.map(msg => (
-                                    <li key={msg.message_id} style={{ background: "#222", color: "#fff", marginBottom: 8, padding: 10, borderRadius: 6, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                    <li
+                                        key={msg.message_id}
+                                        style={{
+                                            background: msg.config_id === config_id ? "#2ecc40" : "#222", // highlight if current config
+                                            color: "#fff",
+                                            marginBottom: 8,
+                                            padding: 10,
+                                            borderRadius: 6,
+                                            boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            border: msg.config_id === config_id ? "2px solid #27ae60" : undefined
+                                        }}
+                                    >
                                         <div>
-                                            <div style={{ fontSize: 14, color: "#aaa" }}>Config ID: {msg.config_id}</div>
+                                            <div style={{ fontSize: 14, color: msg.config_id === config_id ? "#fff" : "#aaa" }}>
+                                                Config ID: {msg.config_id}
+                                                {msg.config_id === config_id && <span style={{ marginLeft: 8, fontWeight: 600 }}>(Current)</span>}
+                                            </div>
                                             <div style={{ fontSize: 16 }}>{msg.message_text}</div>
                                         </div>
                                         <button
@@ -248,9 +304,12 @@ export default function EnigmaMachine({ config, user_id, config_id}) {
                                 ))}
                             </ul>
                         )}
+                        <div style={{ marginTop: 8, fontSize: 13, color: "#27ae60" }}>
+                            <span style={{ display: "inline-block", width: 16, height: 16, background: "#2ecc40", border: "2px solid #27ae60", borderRadius: 4, marginRight: 6, verticalAlign: "middle" }}></span>
+                            Highlighted = messages for the current configuration
+                        </div>
                     </div>
                 </div>
-
                 {/* Right: Lampboard above Keyboard */}
                 <div className="keyboard-section">
                     {/* Lampboard: lights up the last encoded letter */}

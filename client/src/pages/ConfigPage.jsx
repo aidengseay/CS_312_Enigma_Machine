@@ -24,38 +24,33 @@ import axios from "axios";
     // const config_id = 1;
 
 
-export default function ConfigPage({ user_id }) {
-
-    // set initial rotor positions
+// ConfigPage component for managing Enigma configurations
+export default function ConfigPage({ user_id, onConfigSaved, onForceConfigPage }) {
+    // State for each rotor
     const [rotor1, setRotor1] = useState({
         spec: "I",
         startPosition: 0,
         ringSetting: 0,
     });
-
     const [rotor2, setRotor2] = useState({
         spec: "II",
         startPosition: 0,
         ringSetting: 0,
     });
-
     const [rotor3, setRotor3] = useState({
         spec: "III",
         startPosition: 0,
         ringSetting: 0,
     });
-
-    // set initial reflector position
+    // State for reflector
     const [reflector, setReflector] = useState("UKW_B");
-
-    // set initial plugboard  state
+    // State for plugboard pairs
     const [plugboardPairs, setPlugboardPairs] = useState([]);
-
-    // set initial config status
+    // State for the currently submitted config (for EnigmaMachine)
     const [submittedConfig, setSubmittedConfig] = useState(null);
-
+    // State for the config_id of the submitted config
+    const [submittedConfigId, setSubmittedConfigId] = useState(null);
     // State for saved configs management
-    // Array of user's saved configurations
     const [savedConfigs, setSavedConfigs] = useState([]);
     // Loading state for fetching configs
     const [loadingConfigs, setLoadingConfigs] = useState(false);
@@ -67,6 +62,8 @@ export default function ConfigPage({ user_id }) {
     const [savingConfig, setSavingConfig] = useState(false);
     // Success/error messages for save operations
     const [saveStatus, setSaveStatus] = useState("");
+    // Loading state for EnigmaMachine transition
+    const [loadingEnigma, setLoadingEnigma] = useState(false);
 
     // Fetch saved configs when user_id changes
     useEffect(() => {
@@ -74,9 +71,7 @@ export default function ConfigPage({ user_id }) {
         fetchSavedConfigs();
     }, [user_id]);
 
-    /**
-     * Fetch saved configurations from the database
-     */
+    // Fetch saved configurations from the database
     const fetchSavedConfigs = async () => {
         setLoadingConfigs(true);
         setConfigsError("");
@@ -90,11 +85,8 @@ export default function ConfigPage({ user_id }) {
         }
     };
 
-    /**
-     * Load a saved configuration into the form
-     * Populates all form fields with the selected configuration's settings
-     * @param {Object} config - The configuration object to load
-     */
+    // Load a saved configuration into the form
+    // Populates all form fields with the selected configuration's settings
     const handleLoadConfig = (config) => {
         setRotor1(config.rotors[0]);
         setRotor2(config.rotors[1]);
@@ -103,13 +95,18 @@ export default function ConfigPage({ user_id }) {
         setPlugboardPairs(config.plugboardPairs);
         setSaveStatus("Configuration loaded!");
         setTimeout(() => setSaveStatus(""), 2000);
+        // Set submittedConfig and submittedConfigId so EnigmaMachine gets correct config_id and name
+        setSubmittedConfig({
+            rotors: config.rotors,
+            reflector: config.reflector,
+            plugboardPairs: config.plugboardPairs,
+            name: config.name
+        });
+        setSubmittedConfigId(config.config_id);
     };
 
-    /**
-     * Delete a saved configuration
-     * Shows confirmation dialog and removes the config from the saved list
-     * @param {number} config_id - The ID of the configuration to delete
-     */
+    // Delete a saved configuration
+    // Shows confirmation dialog and removes the config from the saved list
     const handleDeleteConfig = async (config_id) => {
         if (!window.confirm("Delete this configuration?")) return;
         setDeletingConfigId(config_id);
@@ -123,87 +120,109 @@ export default function ConfigPage({ user_id }) {
         }
     };
 
-    /**
-     * Handle form submission (legacy function - now replaced by handleSaveAndUse)
-     * This function is kept for potential future use but is not currently called
-     */
-    // function handleSubmit(event) {
-    //     event.preventDefault();
-
-    //     // Create config object from current form state
-    //     const config = {
-    //         rotors: [rotor1, rotor2, rotor3],
-    //         reflector: reflector,
-    //         plugboardPairs: plugboardPairs,
-    //     };
-
-    //     console.log("Submitted Config:", config);
-
-    //     // TODO: send config to the database
-
-    //     // TODO: get the config to get the config id
-
-    //     // TODO: call the enigma machine with new config
-
-    //     setSubmittedConfig(config);
-    // }
-
-    /**
-     * Save and use the current configuration
-     * Prompts user for optional config name, saves if provided, then uses the config
-     * This combines saving and using into a single action for better UX
-     */
+    // Save and use the current configuration
+    // Prompts user for required config name, saves, then uses the config
     const handleSaveAndUse = async () => {
         setSavingConfig(true);
         setSaveStatus("");
-        
-        // Prompt for optional configuration name
-        const configName = prompt("Enter a name for this configuration (optional):");
-        
-        // Create config object from current form state
-        const config = {
-            rotors: [rotor1, rotor2, rotor3],
-            reflector: reflector,
-            plugboardPairs: plugboardPairs,
-        };
-
+        // Prompt for required configuration name
+        let configName = null;
+        while (true) {
+            configName = prompt("Enter a name for this configuration (required):");
+            if (configName === null) {
+                setSavingConfig(false);
+                return;
+            }
+            if (configName.trim() !== "") break;
+            alert("You must enter a name for the configuration.");
+        }
         try {
-            // Save config to database if name was provided
+            let configIdToUse = null;
+            setLoadingEnigma(true); 
             if (configName) {
-                const newConfig = await axios.post("/configs", {
+                // Save config to backend
+                const response = await axios.post("/configs", {
                     user_id,
                     name: configName,
                     rotors: [rotor1, rotor2, rotor3],
                     reflector,
                     plugboardPairs});
-                setSavedConfigs((configs) => [newConfig, ...configs]);
-                setSaveStatus("Configuration saved and loaded!");
+                if (response.data && response.data.config && response.data.config.config_id) {
+                    setSaveStatus("Configuration saved and loaded!");
+                    // Reload the page to ensure all configs are up to date
+                    window.location.reload();
+                    return;
+                } else {
+                    setSaveStatus("Error: Invalid config returned from backend.");
+                    setSavingConfig(false);
+                    setLoadingEnigma(false);
+                    return;
+                }
             } else {
                 setSaveStatus("Configuration loaded!");
+                // Try to find a matching config in savedConfigs
+                const match = savedConfigs.find(cfg =>
+                    Array.isArray(cfg.rotors) &&
+                    cfg.rotors.length === 3 &&
+                    cfg.rotors.every(r => r.spec) &&
+                    cfg.reflector &&
+                    JSON.stringify(cfg.rotors) === JSON.stringify([rotor1, rotor2, rotor3]) &&
+                    cfg.reflector === reflector &&
+                    JSON.stringify(cfg.plugboardPairs) === JSON.stringify(plugboardPairs)
+                );
+                if (match) {
+                    configIdToUse = match.config_id;
+                    setSubmittedConfig({
+                        rotors: match.rotors,
+                        reflector: match.reflector,
+                        plugboardPairs: match.plugboardPairs,
+                        name: match.name
+                    });
+                } else {
+                    setSavingConfig(false);
+                    setLoadingEnigma(false);
+                    setSaveStatus("Please save the configuration before using it.");
+                    setTimeout(() => setSaveStatus("") , 3000);
+                    return;
+                }
             }
-            
-            // Use the configuration with the Enigma machine
-            setSubmittedConfig(config);
+            setSubmittedConfigId(configIdToUse);
+            if (onConfigSaved) onConfigSaved();
         } catch (err) {
             setSaveStatus("Error saving configuration.");
         } finally {
             setSavingConfig(false);
+            setLoadingEnigma(false);
             setTimeout(() => setSaveStatus(""), 3000);
         }
     };
 
-  // Check if configuration has been submitted, show the Enigma machine
-  // TODO: we need to change the config id to an actual value
-  if(submittedConfig) {
-    return <EnigmaMachine config={submittedConfig} user_id={user_id} config_id={1}/>
-  }
+    // Handler to go back to config page from EnigmaMachine
+    const handleBackToConfig = () => {
+        setSubmittedConfig(null);
+        setSubmittedConfigId(null);
+        if (onForceConfigPage) onForceConfigPage();
+    };
 
-  else {
+    // Show loading spinner/message if loadingEnigma is true
+    if (loadingEnigma) {
+        return (
+            <div style={{textAlign: "center", marginTop: 80, color: "#27ae60", fontSize: 24}}>
+                Loading Enigma Machine...
+            </div>
+        );
+    }
+
+    // If configuration has been submitted, show the Enigma machine
+    if(submittedConfig) {
+        return <EnigmaMachine config={submittedConfig} user_id={user_id} config_id={submittedConfigId} onBackToConfig={handleBackToConfig}/>;
+    }
+
+    // Render the configuration page UI
     return (
         <div className="config-page-container">
             <div className="config-form-panel">
                 <div className="config-title">Enigma Machine Configuration</div>
-                
                 {/* Saved Configurations Section - Display user's saved configs */}
                 <div className="saved-configs-section">
                     <div className="config-section-header">Saved Configurations</div>
@@ -220,9 +239,9 @@ export default function ConfigPage({ user_id }) {
                                     <div className="config-info">
                                         <div className="config-name">ID:{config.config_id}, Name:{config.name || "Unnamed Config"}</div>
                                         <div className="config-details">
-                                            Rotors: {config.rotors.map(r => r.spec).join('-')} | 
-                                            Reflector: {config.reflector} | 
-                                            Plugboard: {config.plugboardPairs.length} pairs
+                                            Rotors: {config.rotors && config.rotors.length === 3 ? config.rotors.map(r => r.spec).join('-') : '--'} | 
+                                            Reflector: {config.reflector || ''} | 
+                                            Plugboard: {config.plugboardPairs ? config.plugboardPairs.length : 0} pairs
                                         </div>
                                     </div>
                                     <div className="config-actions">
@@ -245,7 +264,7 @@ export default function ConfigPage({ user_id }) {
                         </div>
                     )}
                 </div>
-
+                {/* Config form UI */}
                 <form>
                     <div className="rotor-section-row">
                         <div className="config-section">
@@ -297,5 +316,4 @@ export default function ConfigPage({ user_id }) {
             </div>
         </div>
     );
-  }
 }

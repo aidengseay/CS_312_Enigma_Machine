@@ -226,16 +226,21 @@ app.post("/delete-account", async (req, res) => {
     }
 });
 //Save new config
+// Endpoint to save a new configuration
 app.post("/configs", async (req, res) => {
-    const { user_id, name, rotors, reflector, plugboardPairs } = req.body;
+    // Extract fields from the request body
+    let { user_id, name, rotors, reflector, plugboardPairs } = req.body;
+    // Ensure a name is always saved; default to 'Unnamed Config' if blank
+    const nameToSave = name && name.trim() ? name : "Unnamed Config";
+    // Validate required fields
     if (!user_id || !rotors || rotors.length !== 3 || !reflector ) {
         return res.status(400).json({ error: "Missing required fields." });
     }
-
+    // Prepare rotor and plugboard data for insertion
     const [r1, r2, r3] = rotors;
     const plugboard = plugboardPairs.map(pair => pair.join("-")).join(",");
-    
     try {
+        // Insert the new config into the database
         const result = await db.query(
             `INSERT INTO configs (
                 user_id, name, 
@@ -246,13 +251,13 @@ app.post("/configs", async (req, res) => {
             ) VALUES (
                 $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
             ) RETURNING config_id`,
-            [user_id, name||null,
+            [user_id, nameToSave,
                 r1.spec, r2.spec, r3.spec,
                 r1.ringSetting, r2.ringSetting, r3.ringSetting,
                 r1.startPosition, r2.startPosition, r3.startPosition,
                 reflector, plugboard]
         );
-        //format response to match frontend
+        // Format the config object to match what the frontend expects
         const config = result.rows[0];
         const formattedConfig = {
             config_id: config.config_id,
@@ -280,8 +285,10 @@ app.post("/configs", async (req, res) => {
                 ? config.plugboard.split(",").map(pair => pair.split("-"))
                 : []
         };
+        // Return the formatted config to the frontend
         res.status(201).json({ config: formattedConfig });
     } catch (err) {
+        // Log and return any errors
         console.error("Error saving config:", err);
         res.status(500).json({ error: "Failed to save configuration." });
     }

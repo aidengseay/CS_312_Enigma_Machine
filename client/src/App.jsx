@@ -7,19 +7,25 @@ import HomePage from "./pages/HomePage";
 import AccountPage from "./pages/AccountPage";
 import ConfigPage from "./pages/ConfigPage";
 import EnigmaMachine from "./components/EnigmaMachine";
+import axios from "axios";
 
 // main app function ///////////////////////////////////////////////////////////
 
+// Main App component for Enigma Machine Emulator
 function App() {
-
     // State for user authentication and page navigation
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     // Store full user object
     const [user, setUser] = useState(null);
-    // pages: "home", "login", "signup", "enigma"
+    // Track the current page (e.g., 'home', 'login', 'signup', 'enigma', 'configurations')
     const [currentPage, setCurrentPage] = useState("home");
+    // State for dropdown menu
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
+    // Track if user has at least one saved config (null = unknown/loading, false = no config, true = has config)
+    const [hasConfig, setHasConfig] = useState(null);
+    // Track if we are currently checking configs (for loading state)
+    const [checkingConfig, setCheckingConfig] = useState(false);
 
     // On mount, restore login state and last page from localStorage
     useEffect(() => {
@@ -29,7 +35,10 @@ function App() {
             const userData = JSON.parse(savedUser);
             setUser(userData);
             setIsLoggedIn(true);
-            setCurrentPage(savedPage || "enigma");
+            // Always check configs on mount if logged in
+            checkUserConfigs(userData.user_id);
+            // Use the saved page if present, otherwise default to configurations
+            setCurrentPage(savedPage || "configurations");
         } else if (savedPage) {
             setCurrentPage(savedPage);
         }
@@ -57,36 +66,75 @@ function App() {
         };
     }, [isDropdownOpen]);
 
-    // Handle successful login
+    // Fetch user's saved configs from backend and update hasConfig
+    // Used after login/signup and on mount
+    const checkUserConfigs = async (user_id) => {
+        setCheckingConfig(true);
+        setHasConfig(null);
+        try {
+            const response = await axios.get(`/configs?user_id=${user_id}`);
+            const configs = response.data.configs || [];
+            setHasConfig(configs.length > 0);
+        } catch (err) {
+            setHasConfig(false);
+        } finally {
+            setCheckingConfig(false);
+        }
+    };
+
+    // Handle successful login: force ConfigPage and check configs
     const handleLoginSuccess = (userData) => {
         setUser(userData);
         setIsLoggedIn(true);
-        setCurrentPage("enigma");
+        setCurrentPage("configurations");
         localStorage.setItem("enigmaUser", JSON.stringify(userData));
-        localStorage.setItem("enigmaPage", "enigma");
+        localStorage.setItem("enigmaPage", "configurations");
+        checkUserConfigs(userData.user_id);
     };
 
-    // Handle successful signup
+    // Handle successful signup: force ConfigPage and check configs
     const handleSignupSuccess = (userData) => {
         setUser(userData);
         setIsLoggedIn(true);
-        setCurrentPage("enigma");
+        setCurrentPage("configurations");
         localStorage.setItem("enigmaUser", JSON.stringify(userData));
-        localStorage.setItem("enigmaPage", "enigma");
+        localStorage.setItem("enigmaPage", "configurations");
+        checkUserConfigs(userData.user_id);
     };
 
-    // Handle logout
+    // Called by ConfigPage when a config is saved, so user can now navigate
+    const handleConfigSaved = () => {
+        setHasConfig(true);
+    };
+
+    // Handle logout: reset config state
     const handleLogout = () => {
         setIsLoggedIn(false);
         setUser(null);
         setCurrentPage("home");
+        setHasConfig(null);
         localStorage.removeItem("enigmaUser");
         localStorage.setItem("enigmaPage", "home");
+    };
+
+    // Guard navigation: only allow if user has a config, otherwise force ConfigPage
+    const guardedSetCurrentPage = (page) => {
+        if (!hasConfig && isLoggedIn) {
+            setCurrentPage("configurations");
+        } else {
+            setCurrentPage(page);
+        }
+    };
+
+    // Handler to force navigation to ConfigPage
+    const handleForceConfigPage = () => {
+        setCurrentPage("configurations");
     };
 
     // Render different pages based on current state
     const renderPage = () => {
         if (!isLoggedIn) {
+            // Not logged in: normal navigation
             switch (currentPage) {
                 case "home":
                     return <HomePage onLogin={() => setCurrentPage("login")} onSignup={() => setCurrentPage("signup")} />;
@@ -104,16 +152,23 @@ function App() {
                     return <HomePage onLogin={() => setCurrentPage("login")} onSignup={() => setCurrentPage("signup")} />;
             }
         } else {
-            // If logged in and currentPage is home, redirect to enigma
-            if (currentPage === "home") {
-                setCurrentPage("enigma");
-                return null;
+            // ENFORCE CONFIG PAGE UNTIL CONFIG SAVED
+            // Show loading while checking configs
+            if (checkingConfig || hasConfig === null) {
+                return <div style={{textAlign: "center", marginTop: 80, color: "#f39c12", fontSize: 24}}>Checking your saved configurations...</div>;
             }
+            // If user does not have a config, force ConfigPage and block all other navigation
+            if (!hasConfig) {
+                // Always force config page if no configs, and update localStorage
+                localStorage.setItem("enigmaPage", "configurations");
+                return <ConfigPage user_id={user?.user_id} onConfigSaved={handleConfigSaved} onForceConfigPage={handleForceConfigPage} />;
+            }
+            // User has config, allow normal navigation
             switch (currentPage) {
                 case "account":
-                    return <AccountPage user={user} onLogout={handleLogout} onBack={() => setCurrentPage("enigma")} />;
+                    return <AccountPage user={user} onLogout={handleLogout} onBack={() => guardedSetCurrentPage("enigma")} />;
                 case "configurations":
-                    return <ConfigPage user_id={user?.user_id} />;
+                    return <ConfigPage user_id={user?.user_id} onConfigSaved={handleConfigSaved} onForceConfigPage={handleForceConfigPage} />;
                 case "enigma":
                     // Default config for EnigmaMachine if needed
                     const defaultConfig = {
@@ -128,17 +183,16 @@ function App() {
                             ["C", "D"],
                         ],
                     };
-                    return <EnigmaMachine config={defaultConfig} user_id={user?.user_id} config_id={1}/>;
+                    return <EnigmaMachine config={defaultConfig} user_id={user?.user_id} config_id={1} onBackToConfig={handleForceConfigPage}/>;
                 default:
-                    return <ConfigPage user_id={user?.user_id} />;
+                    return <ConfigPage user_id={user?.user_id} onConfigSaved={handleConfigSaved} onForceConfigPage={handleForceConfigPage} />;
             }
         }
     };
 
-
-
     // Dropdown menu for logged-in users, shown on all pages except home.
     // The options are hardcoded in alphabetical order, with Logout always last.
+    // Dropdown is disabled until user has a config
     const renderDropdown = () => (
         <div style={{ position: "relative" }} ref={dropdownRef}>
             <button
@@ -151,16 +205,18 @@ function App() {
                     width: 40,
                     height: 40,
                     fontSize: 22,
-                    cursor: "pointer",
+                    cursor: hasConfig ? "pointer" : "not-allowed",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center"
                 }}
                 aria-label="Open user menu"
+                disabled={!hasConfig} // Disable dropdown if no config
             >
                 ☰
             </button>
-            {isDropdownOpen && (
+            {/* Only show dropdown options if user has a config */}
+            {isDropdownOpen && hasConfig && (
                 <div style={{
                     position: "absolute",
                     top: 48,
@@ -175,7 +231,7 @@ function App() {
                 }}>
                     {/* Dropdown options in alphabetical order, except Logout last */}
                     <button
-                        onClick={() => { setCurrentPage("account"); setIsDropdownOpen(false); }}
+                        onClick={() => { guardedSetCurrentPage("account"); setIsDropdownOpen(false); }}
                         style={{
                             width: "100%",
                             background: "none",
@@ -186,26 +242,12 @@ function App() {
                             cursor: "pointer",
                             fontSize: 16
                         }}
+                        disabled={!hasConfig}
                     >
                         Account
                     </button>
                     <button
-                        onClick={() => { setCurrentPage("configurations"); setIsDropdownOpen(false); }}
-                        style={{
-                            width: "100%",
-                            background: "none",
-                            color: "#27ae60",
-                            border: "none",
-                            padding: "12px 20px",
-                            textAlign: "right",
-                            cursor: "pointer",
-                            fontSize: 16
-                        }}
-                    >
-                        Configrations
-                    </button>
-                    <button
-                        onClick={() => { setCurrentPage("enigma"); setIsDropdownOpen(false); }}
+                        onClick={() => { guardedSetCurrentPage("enigma"); setIsDropdownOpen(false); }}
                         style={{
                             width: "100%",
                             background: "none",
@@ -216,6 +258,7 @@ function App() {
                             cursor: "pointer",
                             fontSize: 16
                         }}
+                        disabled={!hasConfig}
                     >
                         Enigma Machine
                     </button>
