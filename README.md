@@ -18,6 +18,10 @@ This repository contains files to run an online enigma machine emulator. Users w
 #### Message Encoding and Decoding
 
 * Interactive user interface that allows users to input text and see their encoded or decoded message
+* **Physical keyboard support** - Type directly on your keyboard for faster input
+* **Keyboard shortcuts**: Enter to save, Escape to restart, Space for spaces
+* **Real-time rotor visualization** - Watch the rotors turn as you type
+* **Automatic rotor reset** - Rotors reset to initial positions after saving messages for proper decryption
 
 #### Enigma Machine Configuration
 
@@ -27,8 +31,9 @@ This repository contains files to run an online enigma machine emulator. Users w
 
 #### Visual Encryption Steps
 
-* As each key is pressed on the keyboard, the onscreen keyboard will light up the letter pressed and the letter it is encoded to
+* As each key is pressed (on-screen or physical keyboard), the onscreen keyboard will light up the letter pressed and the letter it is encoded to
 * The rotors will rotate realistically with each keypress
+* **Dual input methods**: Use the on-screen keyboard or type directly on your physical keyboard
 
 #### User Accounts and Saved Posts
 
@@ -40,6 +45,8 @@ This repository contains files to run an online enigma machine emulator. Users w
 
 * Users can delete their saved messages and configurations
 * Users can edit their saved machine configurations - Will not overwrite
+* **Comprehensive input validation** - Ensures data integrity and security
+* **User-friendly error handling** - Clear messages when something goes wrong
 
 ## Set up
 
@@ -143,6 +150,8 @@ Below are resources used to make an accurate enigma machine emulator
 * [bcrypt](https://www.npmjs.com/package/bcrypt) - Password hashing library
 * [dotenv](https://www.npmjs.com/package/dotenv) - Environment variable loader
 * [body-parser](https://www.npmjs.com/package/body-parser) - Request body parsing middleware
+* **Comprehensive input validation** - Server-side validation for all user inputs
+* **Global error handling** - Centralized error management with proper HTTP status codes
 
 ### Frontend Technologies
 
@@ -151,6 +160,9 @@ Below are resources used to make an accurate enigma machine emulator
 * [Web Vitals](https://web.dev/vitals/) - Performance monitoring library
 * [ESLint](https://eslint.org/) - Code linting and formatting
 * [React Scripts](https://www.npmjs.com/package/react-scripts) - Build tools and development server
+* **Client-side validation** - Real-time input validation for better user experience
+* **Keyboard event handling** - Physical keyboard support with shortcuts
+* **Responsive error handling** - User-friendly error messages and loading states
 
 ### Historical Context
 
