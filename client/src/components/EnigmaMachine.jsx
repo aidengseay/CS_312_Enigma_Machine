@@ -16,20 +16,6 @@ import axios from "axios";
 // EnigmaMachine component /////////////////////////////////////////////////////
 // This component simulates the Enigma machine UI and logic
 export default function EnigmaMachine({ config, user_id, config_id, onBackToConfig }) {
-    // Debug log: show the config received by EnigmaMachine
-    console.log('EnigmaMachine config:', config);
-    // Guard: Only render if config is valid
-    if (
-      !config ||
-      !Array.isArray(config.rotors) ||
-      config.rotors.length !== 3 ||
-      config.rotors.some(r => !r.spec) ||
-      !config.reflector
-    ) {
-      return <div style={{ color: 'red', textAlign: 'center', marginTop: 40 }}>
-        Invalid or incomplete configuration. Please select or save a valid config.
-      </div>;
-    }
     // Plugboard setup: use a ref to persist the plugboard instance across renders
     const plugboardRef = useRef(new Plugboard());
 
@@ -88,33 +74,106 @@ export default function EnigmaMachine({ config, user_id, config_id, onBackToConf
             .finally(() => setLoadingMessages(false));
     }, [user_id]);
 
+    // Handle physical keyboard input
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            // Ignore if user is typing in an input field
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            
+            // Ignore modifier keys
+            if (event.ctrlKey || event.altKey || event.metaKey) {
+                return;
+            }
+            
+
+            
+            // Handle space
+            if (event.key === ' ') {
+                event.preventDefault();
+                handleKeyPress(' ');
+                return;
+            }
+            
+            // Handle single letter keys (A-Z, a-z)
+            if (event.key.length === 1 && /^[A-Za-z]$/.test(event.key)) {
+                event.preventDefault();
+                handleKeyPress(event.key.toUpperCase());
+                return;
+            }
+            
+            // Handle Enter key to save message
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleSaveMessage();
+                return;
+            }
+            
+            // Handle Escape key to restart message
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                handleRestartMessage();
+                return;
+            }
+        };
+
+        // Add event listener
+        document.addEventListener('keydown', handleKeyDown);
+        
+        // Cleanup on unmount
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [inputMessage, outputMessage]); // Dependencies for the closure
+
     // Save message handler
     const handleSaveMessage = async () => {
         setSaveStatus("");
+        
+        // Validate message before saving
         if (!outputMessage.trim()) {
             setSaveStatus("Nothing to save.");
             return;
         }
+        
+        if (outputMessage.length > 10000) {
+            setSaveStatus("Message is too long. Maximum 10,000 characters allowed.");
+            return;
+        }
+        
         try {
             const response = await axios.post("/messages", {
                 user_id,
                 config_id,
                 message_text: outputMessage
             });
+            
             if (response.data && response.data.message === "Message saved successfully") {
                 setSaveStatus("Message saved!");
                 // Re-fetch messages
                 const res = await axios.get(`/messages?user_id=${user_id}`);
                 setSavedMessages(res.data.messages || []);
-                // Clear input/output
+                // Clear input/output and reset rotors to initial positions
                 setInputMessage("");
                 setOutputMessage("");
+                rotorsRef.current.forEach(rotor => rotor.restart());
+                setRotorPositions(rotorsRef.current.map(r => r.rotorPos));
                 return;
             } else {
                 setSaveStatus("Failed to save message.");
             }
         } catch (err) {
-            setSaveStatus("Error saving message.");
+            // Handle specific error cases
+            if (err.response?.status === 400) {
+                setSaveStatus(err.response.data.error || "Invalid message data");
+            } else if (err.response?.status === 404) {
+                setSaveStatus("Configuration not found. Please reload the page.");
+            } else if (err.response?.status === 500) {
+                setSaveStatus("Server error. Please try again later.");
+            } else {
+                setSaveStatus("Network error. Please check your connection.");
+            }
         }
     };
 
@@ -135,7 +194,14 @@ export default function EnigmaMachine({ config, user_id, config_id, onBackToConf
             await axios.delete(`/messages/${message_id}`);
             setSavedMessages((msgs) => msgs.filter((msg) => msg.message_id !== message_id));
         } catch (err) {
-            alert("Failed to delete message.");
+            // Handle specific error cases
+            if (err.response?.status === 404) {
+                alert("Message not found. It may have already been deleted.");
+            } else if (err.response?.status === 500) {
+                alert("Server error. Please try again later.");
+            } else {
+                alert("Network error. Please check your connection.");
+            }
         } finally {
             setDeletingMessageId(null);
         }
@@ -158,6 +224,19 @@ export default function EnigmaMachine({ config, user_id, config_id, onBackToConf
             setRotorPositions(rotorsRef.current.map((r) => r.rotorPos));
         }
     };
+
+    // Guard: Only render if config is valid (after all hooks)
+    if (
+      !config ||
+      !Array.isArray(config.rotors) ||
+      config.rotors.length !== 3 ||
+      config.rotors.some(r => !r.spec) ||
+      !config.reflector
+    ) {
+      return <div style={{ color: 'red', textAlign: 'center', marginTop: 40 }}>
+        Invalid or incomplete configuration. Please select or save a valid config.
+      </div>;
+    }
 
     // Render the Enigma Machine UI
     return (
@@ -185,6 +264,19 @@ export default function EnigmaMachine({ config, user_id, config_id, onBackToConf
                 <span style={{ fontWeight: 600, fontSize: 18, color: "#27ae60" }}>
                     Current Config: {config.name}
                 </span>
+            </div>
+            {/* Keyboard shortcuts help */}
+            <div style={{ 
+                marginBottom: 16, 
+                textAlign: "center", 
+                fontSize: 12, 
+                color: "#888",
+                backgroundColor: "#f8f9fa",
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid #e9ecef"
+            }}>
+                <strong>Keyboard Shortcuts:</strong> Type letters to encode • Space for space • Enter to save • Escape to restart
             </div>
             {/* Rotor panel at the top showing current rotor positions */}
             <div className="rotor-panel">

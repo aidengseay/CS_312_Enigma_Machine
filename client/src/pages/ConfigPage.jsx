@@ -79,7 +79,14 @@ export default function ConfigPage({ user_id, onConfigSaved, onForceConfigPage }
             const response = await axios.get(`/configs?user_id=${user_id}`);
             setSavedConfigs(response.data.configs || []);
         } catch (err) {
-            setConfigsError("Failed to load saved configurations.");
+            // Handle specific error cases
+            if (err.response?.status === 400) {
+                setConfigsError("Invalid user ID. Please log in again.");
+            } else if (err.response?.status === 500) {
+                setConfigsError("Server error. Please try again later.");
+            } else {
+                setConfigsError("Network error. Please check your connection.");
+            }
         } finally {
             setLoadingConfigs(false);
         }
@@ -114,10 +121,83 @@ export default function ConfigPage({ user_id, onConfigSaved, onForceConfigPage }
             await axios.delete(`/configs/${config_id}`);
             setSavedConfigs((configs) => configs.filter((config) => config.config_id !== config_id));
         } catch (err) {
-            alert("Failed to delete configuration.");
+            // Handle specific error cases
+            if (err.response?.status === 400) {
+                alert("Invalid configuration ID.");
+            } else if (err.response?.status === 404) {
+                alert("Configuration not found. It may have already been deleted.");
+            } else if (err.response?.status === 500) {
+                alert("Server error. Please try again later.");
+            } else {
+                alert("Network error. Please check your connection.");
+            }
         } finally {
             setDeletingConfigId(null);
         }
+    };
+
+    // Validate configuration before saving
+    const validateConfiguration = () => {
+        const errors = [];
+        
+        // Validate rotor specifications
+        const validRotorSpecs = ['I', 'II', 'III', 'IV', 'V'];
+        const rotors = [rotor1, rotor2, rotor3];
+        
+        rotors.forEach((rotor, index) => {
+            if (!validRotorSpecs.includes(rotor.spec)) {
+                errors.push(`Rotor ${index + 1} must be one of: ${validRotorSpecs.join(', ')}`);
+            }
+            if (rotor.ringSetting < 0 || rotor.ringSetting > 25) {
+                errors.push(`Rotor ${index + 1} ring setting must be between 0 and 25`);
+            }
+            if (rotor.startPosition < 0 || rotor.startPosition > 25) {
+                errors.push(`Rotor ${index + 1} start position must be between 0 and 25`);
+            }
+        });
+        
+        // Validate reflector
+        const validReflectors = ['UKW_B', 'UKW_C'];
+        if (!validReflectors.includes(reflector)) {
+            errors.push(`Reflector must be one of: ${validReflectors.join(', ')}`);
+        }
+        
+        // Validate plugboard pairs
+        if (plugboardPairs.length > 13) {
+            errors.push('Maximum 13 plugboard pairs allowed');
+        }
+        
+        const usedLetters = new Set();
+        plugboardPairs.forEach((pair, index) => {
+            if (!Array.isArray(pair) || pair.length !== 2) {
+                errors.push(`Plugboard pair ${index + 1} must contain exactly 2 letters`);
+                return;
+            }
+            
+            const [letter1, letter2] = pair;
+            const upperLetter1 = letter1.toUpperCase();
+            const upperLetter2 = letter2.toUpperCase();
+            
+            if (!/^[A-Z]$/.test(upperLetter1) || !/^[A-Z]$/.test(upperLetter2)) {
+                errors.push(`Plugboard pair ${index + 1} must contain single letters A-Z`);
+                return;
+            }
+            
+            if (upperLetter1 === upperLetter2) {
+                errors.push(`Plugboard pair ${index + 1} cannot connect a letter to itself`);
+                return;
+            }
+            
+            if (usedLetters.has(upperLetter1) || usedLetters.has(upperLetter2)) {
+                errors.push(`Letter in plugboard pair ${index + 1} is already used in another pair`);
+                return;
+            }
+            
+            usedLetters.add(upperLetter1);
+            usedLetters.add(upperLetter2);
+        });
+        
+        return errors;
     };
 
     // Save and use the current configuration
@@ -125,6 +205,16 @@ export default function ConfigPage({ user_id, onConfigSaved, onForceConfigPage }
     const handleSaveAndUse = async () => {
         setSavingConfig(true);
         setSaveStatus("");
+        
+        // Validate configuration before proceeding
+        const validationErrors = validateConfiguration();
+        if (validationErrors.length > 0) {
+            setSaveStatus(`Configuration errors: ${validationErrors.join(', ')}`);
+            setSavingConfig(false);
+            setTimeout(() => setSaveStatus(""), 5000);
+            return;
+        }
+        
         // Prompt for required configuration name
         let configName = null;
         while (true) {
@@ -189,11 +279,20 @@ export default function ConfigPage({ user_id, onConfigSaved, onForceConfigPage }
             setSubmittedConfigId(configIdToUse);
             if (onConfigSaved) onConfigSaved();
         } catch (err) {
-            setSaveStatus("Error saving configuration.");
+            // Handle specific error cases
+            if (err.response?.status === 400) {
+                setSaveStatus(err.response.data.error || "Invalid configuration data");
+            } else if (err.response?.status === 404) {
+                setSaveStatus("User not found. Please log in again.");
+            } else if (err.response?.status === 500) {
+                setSaveStatus("Server error. Please try again later.");
+            } else {
+                setSaveStatus("Network error. Please check your connection.");
+            }
         } finally {
             setSavingConfig(false);
             setLoadingEnigma(false);
-            setTimeout(() => setSaveStatus(""), 3000);
+            setTimeout(() => setSaveStatus(""), 5000);
         }
     };
 

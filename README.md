@@ -75,7 +75,8 @@ DB_PORT={...}
 |              | username                      | VARCHAR(50)  | UNIQUE, NOT NULL                                 |
 |              | password                      | VARCHAR(255) | NOT NULL                                         |
 | **configs**  | config\_id                    | SERIAL       | PRIMARY KEY                                      |
-|              | creator\_id                   | INTEGER      | REFERENCES users(user\_id) ON DELETE CASCADE     |
+|              | user\_id                      | INTEGER      | REFERENCES users(user\_id) ON DELETE CASCADE     |
+|              | name                          | VARCHAR(100) | NOT NULL                                         |
 |              | rotator\_one                  | VARCHAR(50)  | NOT NULL                                         |
 |              | rotator\_two                  | VARCHAR(50)  | NOT NULL                                         |
 |              | rotator\_three                | VARCHAR(50)  | NOT NULL                                         |
