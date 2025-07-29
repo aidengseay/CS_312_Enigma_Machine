@@ -47,6 +47,9 @@ This repository contains files to run an online enigma machine emulator. Users w
 * Users can edit their saved machine configurations - Will not overwrite
 * **Comprehensive input validation** - Ensures data integrity and security
 * **User-friendly error handling** - Clear messages when something goes wrong
+* **Data integrity safeguards** - Account deletion removes all user data (messages and configs)
+* **Cascading deletions** - Deleting a configuration also removes all associated messages
+* **Transaction-based operations** - Database operations use transactions to maintain consistency
 
 ## Set up
 
@@ -152,6 +155,8 @@ Below are resources used to make an accurate enigma machine emulator
 * [body-parser](https://www.npmjs.com/package/body-parser) - Request body parsing middleware
 * **Comprehensive input validation** - Server-side validation for all user inputs
 * **Global error handling** - Centralized error management with proper HTTP status codes
+* **Database transaction management** - ACID-compliant operations for data integrity
+* **Referential integrity enforcement** - Proper deletion order prevents orphaned data
 
 ### Frontend Technologies
 
@@ -163,6 +168,8 @@ Below are resources used to make an accurate enigma machine emulator
 * **Client-side validation** - Real-time input validation for better user experience
 * **Keyboard event handling** - Physical keyboard support with shortcuts
 * **Responsive error handling** - User-friendly error messages and loading states
+* **Enhanced user feedback** - Specific error messages for different failure scenarios
+* **Data integrity warnings** - Users are warned about cascading deletions
 
 ### Historical Context
 

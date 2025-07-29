@@ -115,13 +115,14 @@ export default function ConfigPage({ user_id, onConfigSaved, onForceConfigPage }
     // Delete a saved configuration
     // Shows confirmation dialog and removes the config from the saved list
     const handleDeleteConfig = async (config_id) => {
-        if (!window.confirm("Delete this configuration?")) return;
+        // Warn user that deleting config will also delete associated messages
+        if (!window.confirm("Delete this configuration? This will also delete all messages created with this configuration.")) return;
         setDeletingConfigId(config_id);
         try {
             await axios.delete(`/configs/${config_id}`);
             setSavedConfigs((configs) => configs.filter((config) => config.config_id !== config_id));
         } catch (err) {
-            // Handle specific error cases
+            // Handle specific error cases with user-friendly messages
             if (err.response?.status === 400) {
                 alert("Invalid configuration ID.");
             } else if (err.response?.status === 404) {

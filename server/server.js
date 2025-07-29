@@ -504,11 +504,39 @@ app.post("/delete-account", async (req, res) => {
             return res.status(401).json({ error: "Password is incorrect" });
         }
         
-        // Delete user (cascades to messages and configs)
-        await db.query("DELETE FROM users WHERE user_id = $1", [userIdValidation.userId]);
-        res.json({ message: "Account deleted successfully" });
+        // Use a transaction to ensure all deletions succeed or fail together
+        // This prevents orphaned data if any deletion fails
+        await db.query('BEGIN');
+        
+        try {
+            // Delete messages first to maintain referential integrity
+            // This ensures no messages reference a user that no longer exists
+            await db.query("DELETE FROM messages WHERE user_id = $1", [userIdValidation.userId]);
+            
+            // Delete configs next
+            // This ensures no configs reference a user that no longer exists
+            await db.query("DELETE FROM configs WHERE user_id = $1", [userIdValidation.userId]);
+            
+            // Finally delete the user
+            // This is safe now that all dependent records have been deleted
+            const deleteResult = await db.query("DELETE FROM users WHERE user_id = $1", [userIdValidation.userId]);
+            
+            if (deleteResult.rowCount === 0) {
+                throw new Error("User not found during deletion");
+            }
+            
+            // Commit the transaction if all deletions succeeded
+            await db.query('COMMIT');
+            res.json({ message: "Account deleted successfully" });
+        } catch (deleteErr) {
+            // Rollback the transaction if any deletion failed
+            // This ensures database consistency
+            await db.query('ROLLBACK');
+            throw deleteErr;
+        }
     } catch (err) {
-        next(err);
+        console.error('Account deletion error:', err);
+        res.status(500).json({ error: "Error deleting account. Please try again." });
     }
 });
 
@@ -673,16 +701,40 @@ app.delete("/configs/:config_id", async (req, res) => {
             return res.status(400).json({ error: "Valid config_id is required" });
         }
 
-        const result = await db.query(
-            "DELETE FROM configs WHERE config_id = $1 RETURNING *",
-            [configIdValidation.userId]
-        );
-        if (result.rowCount === 0) {
-            return res.status(404).json({ error: "Configuration not found" });
+        // Use a transaction to ensure all deletions succeed or fail together
+        // This prevents orphaned messages if config deletion fails
+        await db.query('BEGIN');
+        
+        try {
+            // First, delete all messages associated with this config
+            // This ensures no messages reference a config that no longer exists
+            await db.query("DELETE FROM messages WHERE config_id = $1", [configIdValidation.userId]);
+            
+            // Then delete the config
+            // This is safe now that all dependent messages have been deleted
+            const result = await db.query(
+                "DELETE FROM configs WHERE config_id = $1 RETURNING *",
+                [configIdValidation.userId]
+            );
+            
+            if (result.rowCount === 0) {
+                // Rollback if config doesn't exist
+                await db.query('ROLLBACK');
+                return res.status(404).json({ error: "Configuration not found" });
+            }
+            
+            // Commit the transaction if all deletions succeeded
+            await db.query('COMMIT');
+            res.json({ message: "Configuration and associated messages deleted" });
+        } catch (deleteErr) {
+            // Rollback the transaction if any deletion failed
+            // This ensures database consistency
+            await db.query('ROLLBACK');
+            throw deleteErr;
         }
-        res.json({ message: "Configuration deleted" });
     } catch (err) {
-        next(err);
+        console.error('Config deletion error:', err);
+        res.status(500).json({ error: "Error deleting configuration. Please try again." });
     }
 });
 
