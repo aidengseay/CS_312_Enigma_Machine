@@ -33,12 +33,9 @@ export function encodeLetter(inputLetter, rotors, plugboard, reflector) {
     // keyboard to plugboard to rotor
     let char = plugboard.swap(inputLetter);
 
-    console.log(char);
-
     // forward pass through the rotors going right to left
     for(const rotor of rotors) {
         char = rotor.toReflector(char);
-        console.log(char);
     }
 
     // go through the reflector

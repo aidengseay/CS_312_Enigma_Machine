@@ -10,24 +10,50 @@ export default function SignInPage({ onSignupSuccess, onSwitchToLogin }) {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    // Validate form inputs
+    const validateForm = () => {
+        const errors = [];
+        
+        if (!username.trim()) {
+            errors.push("Username is required");
+        } else if (username.trim().length > 50) {
+            errors.push("Username must be 50 characters or less");
+        } else if (!/^[a-zA-Z0-9_-]+$/.test(username.trim())) {
+            errors.push("Username can only contain letters, numbers, underscores, and hyphens");
+        }
+        
+        if (!password) {
+            errors.push("Password is required");
+        } else if (password.length < 6) {
+            errors.push("Password must be at least 6 characters long");
+        } else if (password.length > 255) {
+            errors.push("Password must be 255 characters or less");
+        }
+        
+        if (password !== confirmPassword) {
+            errors.push("Passwords do not match");
+        }
+        
+        return errors;
+    };
+
     // Handle form submission for signup
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
-        // Validate passwords
-        if (password !== confirmPassword) {
-            setError("Passwords do not match!");
+        
+        // Validate form inputs
+        const validationErrors = validateForm();
+        if (validationErrors.length > 0) {
+            setError(validationErrors.join(', '));
             return;
         }
-        if (password.length < 6) {
-            setError("Password must be at least 6 characters");
-            return;
-        }
+        
         setLoading(true);
         try {
             // Send registration request to backend
             const response = await axios.post("/register", {
-                username,
+                username: username.trim(),
                 password
             });
             // If registration is successful, call parent handler

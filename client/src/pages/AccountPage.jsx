@@ -82,16 +82,27 @@ export default function AccountPage({ user, onLogout, onBack }) {
     /**
      * Delete a saved configuration
      * Shows confirmation dialog and removes the config from the saved list
+     * Also deletes all messages associated with this configuration
      * @param {number} config_id - The ID of the configuration to delete
      */
     const handleDeleteConfig = async (config_id) => {
-        if (!window.confirm("Delete this configuration?")) return;
+        // Warn user that deleting config will also delete associated messages
+        if (!window.confirm("Delete this configuration? This will also delete all messages created with this configuration.")) return;
         setDeletingConfigId(config_id);
         try {
             await axios.delete(`/configs/${config_id}`);
             setSavedConfigs((configs) => configs.filter((config) => config.config_id !== config_id));
         } catch (err) {
-            alert("Failed to delete configuration.");
+            // Handle specific error cases with user-friendly messages
+            if (err.response?.status === 400) {
+                alert("Invalid configuration ID.");
+            } else if (err.response?.status === 404) {
+                alert("Configuration not found. It may have already been deleted.");
+            } else if (err.response?.status === 500) {
+                alert("Server error. Please try again later.");
+            } else {
+                alert("Network error. Please check your connection.");
+            }
         } finally {
             setDeletingConfigId(null);
         }
@@ -139,7 +150,18 @@ export default function AccountPage({ user, onLogout, onBack }) {
                 onLogout();
             }, 1200);
         } catch (err) {
-            setDeleteStatus(err.response?.data?.error || "Error deleting account.");
+            // Handle specific error cases with user-friendly messages
+            if (err.response?.status === 400) {
+                setDeleteStatus(err.response.data.error || "Invalid input data");
+            } else if (err.response?.status === 401) {
+                setDeleteStatus("Password is incorrect");
+            } else if (err.response?.status === 404) {
+                setDeleteStatus("User not found");
+            } else if (err.response?.status === 500) {
+                setDeleteStatus("Server error. Please try again later.");
+            } else {
+                setDeleteStatus("Network error. Please check your connection.");
+            }
         } finally {
             setDeleting(false);
         }

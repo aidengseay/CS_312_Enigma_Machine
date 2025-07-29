@@ -22,6 +22,236 @@ const db = new pg.Client({
     ssl: { rejectUnauthorized: false }
 });
 
+// validation functions ////////////////////////////////////////////////////////
+
+/**
+ * Validates username format and length
+ * @param {string} username - The username to validate
+ * @returns {object} - Validation result with isValid boolean and error message
+ */
+function validateUsername(username) {
+    if (!username || typeof username !== 'string') {
+        return { isValid: false, error: "Username is required and must be a string" };
+    }
+    
+    const trimmedUsername = username.trim();
+    if (trimmedUsername.length === 0) {
+        return { isValid: false, error: "Username cannot be empty" };
+    }
+    
+    if (trimmedUsername.length > 50) {
+        return { isValid: false, error: "Username must be 50 characters or less" };
+    }
+    
+    // Allow alphanumeric characters, underscores, and hyphens
+    const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+    if (!usernameRegex.test(trimmedUsername)) {
+        return { isValid: false, error: "Username can only contain letters, numbers, underscores, and hyphens" };
+    }
+    
+    return { isValid: true, username: trimmedUsername };
+}
+
+/**
+ * Validates password strength and format
+ * @param {string} password - The password to validate
+ * @returns {object} - Validation result with isValid boolean and error message
+ */
+function validatePassword(password) {
+    if (!password || typeof password !== 'string') {
+        return { isValid: false, error: "Password is required and must be a string" };
+    }
+    
+    if (password.length < 6) {
+        return { isValid: false, error: "Password must be at least 6 characters long" };
+    }
+    
+    if (password.length > 255) {
+        return { isValid: false, error: "Password must be 255 characters or less" };
+    }
+    
+    return { isValid: true };
+}
+
+/**
+ * Validates user_id format
+ * @param {any} user_id - The user_id to validate
+ * @returns {object} - Validation result with isValid boolean and error message
+ */
+function validateUserId(user_id) {
+    if (!user_id) {
+        return { isValid: false, error: "User ID is required" };
+    }
+    
+    const userIdNum = parseInt(user_id);
+    if (isNaN(userIdNum) || userIdNum <= 0) {
+        return { isValid: false, error: "User ID must be a positive integer" };
+    }
+    
+    return { isValid: true, userId: userIdNum };
+}
+
+/**
+ * Validates rotor configuration
+ * @param {Array} rotors - Array of rotor objects
+ * @returns {object} - Validation result with isValid boolean and error message
+ */
+function validateRotors(rotors) {
+    if (!Array.isArray(rotors) || rotors.length !== 3) {
+        return { isValid: false, error: "Exactly 3 rotors are required" };
+    }
+    
+    const validRotorSpecs = ['I', 'II', 'III', 'IV', 'V'];
+    
+    for (let i = 0; i < rotors.length; i++) {
+        const rotor = rotors[i];
+        
+        if (!rotor || typeof rotor !== 'object') {
+            return { isValid: false, error: `Rotor ${i + 1} must be an object` };
+        }
+        
+        if (!validRotorSpecs.includes(rotor.spec)) {
+            return { isValid: false, error: `Rotor ${i + 1} spec must be one of: ${validRotorSpecs.join(', ')}` };
+        }
+        
+        if (typeof rotor.ringSetting !== 'number' || rotor.ringSetting < 0 || rotor.ringSetting > 25) {
+            return { isValid: false, error: `Rotor ${i + 1} ring setting must be a number between 0 and 25` };
+        }
+        
+        if (typeof rotor.startPosition !== 'number' || rotor.startPosition < 0 || rotor.startPosition > 25) {
+            return { isValid: false, error: `Rotor ${i + 1} start position must be a number between 0 and 25` };
+        }
+    }
+    
+    return { isValid: true };
+}
+
+/**
+ * Validates reflector configuration
+ * @param {string} reflector - The reflector specification
+ * @returns {object} - Validation result with isValid boolean and error message
+ */
+function validateReflector(reflector) {
+    const validReflectors = ['UKW_B', 'UKW_C'];
+    
+    if (!reflector || !validReflectors.includes(reflector)) {
+        return { isValid: false, error: `Reflector must be one of: ${validReflectors.join(', ')}` };
+    }
+    
+    return { isValid: true };
+}
+
+/**
+ * Validates plugboard pairs
+ * @param {Array} plugboardPairs - Array of letter pairs
+ * @returns {object} - Validation result with isValid boolean and error message
+ */
+function validatePlugboardPairs(plugboardPairs) {
+    if (!Array.isArray(plugboardPairs)) {
+        return { isValid: false, error: "Plugboard pairs must be an array" };
+    }
+    
+    if (plugboardPairs.length > 13) {
+        return { isValid: false, error: "Maximum 13 plugboard pairs allowed" };
+    }
+    
+    const usedLetters = new Set();
+    
+    for (let i = 0; i < plugboardPairs.length; i++) {
+        const pair = plugboardPairs[i];
+        
+        if (!Array.isArray(pair) || pair.length !== 2) {
+            return { isValid: false, error: `Plugboard pair ${i + 1} must be an array with exactly 2 letters` };
+        }
+        
+        const [letter1, letter2] = pair;
+        
+        if (typeof letter1 !== 'string' || typeof letter2 !== 'string') {
+            return { isValid: false, error: `Plugboard pair ${i + 1} must contain string letters` };
+        }
+        
+        const upperLetter1 = letter1.toUpperCase();
+        const upperLetter2 = letter2.toUpperCase();
+        
+        if (!/^[A-Z]$/.test(upperLetter1) || !/^[A-Z]$/.test(upperLetter2)) {
+            return { isValid: false, error: `Plugboard pair ${i + 1} must contain single letters A-Z` };
+        }
+        
+        if (upperLetter1 === upperLetter2) {
+            return { isValid: false, error: `Plugboard pair ${i + 1} cannot connect a letter to itself` };
+        }
+        
+        if (usedLetters.has(upperLetter1) || usedLetters.has(upperLetter2)) {
+            return { isValid: false, error: `Letter in plugboard pair ${i + 1} is already used in another pair` };
+        }
+        
+        usedLetters.add(upperLetter1);
+        usedLetters.add(upperLetter2);
+    }
+    
+    return { isValid: true };
+}
+
+/**
+ * Validates message text
+ * @param {string} message_text - The message text to validate
+ * @returns {object} - Validation result with isValid boolean and error message
+ */
+function validateMessageText(message_text) {
+    if (!message_text || typeof message_text !== 'string') {
+        return { isValid: false, error: "Message text is required and must be a string" };
+    }
+    
+    const trimmedMessage = message_text.trim();
+    if (trimmedMessage.length === 0) {
+        return { isValid: false, error: "Message text cannot be empty" };
+    }
+    
+    if (trimmedMessage.length > 10000) {
+        return { isValid: false, error: "Message text must be 10,000 characters or less" };
+    }
+    
+    return { isValid: true, messageText: trimmedMessage };
+}
+
+/**
+ * Validates config name
+ * @param {string} name - The config name to validate
+ * @returns {object} - Validation result with isValid boolean and error message
+ */
+function validateConfigName(name) {
+    if (!name || typeof name !== 'string') {
+        return { isValid: false, error: "Configuration name is required and must be a string" };
+    }
+    
+    const trimmedName = name.trim();
+    if (trimmedName.length === 0) {
+        return { isValid: false, error: "Configuration name cannot be empty" };
+    }
+    
+    if (trimmedName.length > 100) {
+        return { isValid: false, error: "Configuration name must be 100 characters or less" };
+    }
+    
+    return { isValid: true, name: trimmedName };
+}
+
+// error handling middleware //////////////////////////////////////////////////
+
+/**
+ * Global error handler middleware
+ */
+app.use((err, req, res, next) => {
+    // Log error for debugging (but don't expose details to client)
+    console.error('Server error:', err);
+    
+    // Send generic error response
+    res.status(500).json({ 
+        error: "Internal server error",
+        message: "An unexpected error occurred. Please try again later."
+    });
+});
+
 // middleware //////////////////////////////////////////////////////////////////
 
 app.use(express.json());
@@ -34,17 +264,19 @@ app.post("/register", async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // Validate input
-        if (!username || !password) {
-            return res.status(400).json({ error: "Username and password are required" });
+        // Validate input using validation functions
+        const usernameValidation = validateUsername(username);
+        if (!usernameValidation.isValid) {
+            return res.status(400).json({ error: usernameValidation.error });
         }
 
-        if (password.length < 6) {
-            return res.status(400).json({ error: "Password must be at least 6 characters" });
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.isValid) {
+            return res.status(400).json({ error: passwordValidation.error });
         }
 
         // Check if username already exists
-        const existingUser = await db.query("SELECT username FROM users WHERE username = $1", [username]);
+        const existingUser = await db.query("SELECT username FROM users WHERE username = $1", [usernameValidation.username]);
         if (existingUser.rows.length > 0) {
             return res.status(400).json({ error: "Username already exists" });
         }
@@ -55,7 +287,7 @@ app.post("/register", async (req, res) => {
         // Insert new user
         const result = await db.query(
             "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING user_id, username",
-            [username, hashedPassword]
+            [usernameValidation.username, hashedPassword]
         );
 
         res.status(201).json({
@@ -64,8 +296,8 @@ app.post("/register", async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Registration error:", err);
-        res.status(500).json({ error: "Server error during registration" });
+        // Pass error to global error handler
+        next(err);
     }
 });
 
@@ -75,12 +307,18 @@ app.post("/login", async (req, res) => {
         const { username, password } = req.body;
 
         // Validate input
-        if (!username || !password) {
-            return res.status(400).json({ error: "Username and password are required" });
+        const usernameValidation = validateUsername(username);
+        if (!usernameValidation.isValid) {
+            return res.status(400).json({ error: usernameValidation.error });
+        }
+
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.isValid) {
+            return res.status(400).json({ error: passwordValidation.error });
         }
 
         // Find user
-        const result = await db.query("SELECT user_id, username, password FROM users WHERE username = $1", [username]);
+        const result = await db.query("SELECT user_id, username, password FROM users WHERE username = $1", [usernameValidation.username]);
         if (result.rows.length === 0) {
             return res.status(401).json({ error: "Invalid username or password" });
         }
@@ -103,8 +341,7 @@ app.post("/login", async (req, res) => {
         });
         
     } catch (err) {
-        console.error("Login error:", err);
-        res.status(500).json({ error: "Server error during login" });
+        next(err);
     }
 });
 
@@ -112,17 +349,42 @@ app.post("/login", async (req, res) => {
 app.post("/messages", async (req, res) => {
     try {
         const { user_id, config_id, message_text } = req.body;
-        if (!user_id || !config_id || !message_text) {
-            return res.status(400).json({ error: "user_id, config_id, and message_text are required" });
+        
+        // Validate all required fields
+        const userIdValidation = validateUserId(user_id);
+        if (!userIdValidation.isValid) {
+            return res.status(400).json({ error: userIdValidation.error });
         }
+
+        const configIdValidation = validateUserId(config_id); // Reuse user_id validation for config_id
+        if (!configIdValidation.isValid) {
+            return res.status(400).json({ error: "Valid config_id is required" });
+        }
+
+        const messageValidation = validateMessageText(message_text);
+        if (!messageValidation.isValid) {
+            return res.status(400).json({ error: messageValidation.error });
+        }
+
+        // Verify user exists
+        const userCheck = await db.query("SELECT user_id FROM users WHERE user_id = $1", [userIdValidation.userId]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Verify config exists and belongs to user
+        const configCheck = await db.query("SELECT config_id FROM configs WHERE config_id = $1 AND user_id = $2", [configIdValidation.userId, userIdValidation.userId]);
+        if (configCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Configuration not found or does not belong to user" });
+        }
+
         const result = await db.query(
             "INSERT INTO messages (user_id, config_id, message_text) VALUES ($1, $2, $3) RETURNING message_id, user_id, config_id, message_text",
-            [user_id, config_id, message_text]
+            [userIdValidation.userId, configIdValidation.userId, messageValidation.messageText]
         );
         res.status(201).json({ message: "Message saved successfully", messageData: result.rows[0] });
     } catch (err) {
-        console.error("Error saving message:", err);
-        res.status(500).json({ error: "Server error while saving message" });
+        next(err);
     }
 });
 
@@ -130,20 +392,22 @@ app.post("/messages", async (req, res) => {
 app.get("/messages", async (req, res) => {
     try {
         const { user_id } = req.query;
-        if (!user_id) {
-            return res.status(400).json({ error: "user_id is required" });
+        
+        const userIdValidation = validateUserId(user_id);
+        if (!userIdValidation.isValid) {
+            return res.status(400).json({ error: userIdValidation.error });
         }
+
         const result = await db.query(
             `SELECT message_id, config_id, message_text, user_id
              FROM messages
              WHERE user_id = $1
              ORDER BY message_id DESC`,
-            [user_id]
+            [userIdValidation.userId]
         );
         res.json({ messages: result.rows });
     } catch (err) {
-        console.error("Error fetching messages:", err);
-        res.status(500).json({ error: "Server error while fetching messages" });
+        next(err);
     }
 });
 
@@ -151,20 +415,22 @@ app.get("/messages", async (req, res) => {
 app.delete("/messages/:message_id", async (req, res) => {
     try {
         const { message_id } = req.params;
-        if (!message_id) {
-            return res.status(400).json({ error: "message_id is required" });
+        
+        const messageIdValidation = validateUserId(message_id); // Reuse user_id validation
+        if (!messageIdValidation.isValid) {
+            return res.status(400).json({ error: "Valid message_id is required" });
         }
+
         const result = await db.query(
             "DELETE FROM messages WHERE message_id = $1 RETURNING *",
-            [message_id]
+            [messageIdValidation.userId]
         );
         if (result.rowCount === 0) {
             return res.status(404).json({ error: "Message not found" });
         }
         res.json({ message: "Message deleted successfully" });
     } catch (err) {
-        console.error("Error deleting message:", err);
-        res.status(500).json({ error: "Server error while deleting message" });
+        next(err);
     }
 });
 
@@ -172,30 +438,41 @@ app.delete("/messages/:message_id", async (req, res) => {
 app.post("/change-password", async (req, res) => {
     try {
         const { user_id, current_password, new_password } = req.body;
-        if (!user_id || !current_password || !new_password) {
-            return res.status(400).json({ error: "user_id, current_password, and new_password are required" });
+        
+        const userIdValidation = validateUserId(user_id);
+        if (!userIdValidation.isValid) {
+            return res.status(400).json({ error: userIdValidation.error });
         }
-        if (new_password.length < 6) {
-            return res.status(400).json({ error: "New password must be at least 6 characters" });
+
+        const currentPasswordValidation = validatePassword(current_password);
+        if (!currentPasswordValidation.isValid) {
+            return res.status(400).json({ error: currentPasswordValidation.error });
         }
+
+        const newPasswordValidation = validatePassword(new_password);
+        if (!newPasswordValidation.isValid) {
+            return res.status(400).json({ error: newPasswordValidation.error });
+        }
+
         // Get user
-        const result = await db.query("SELECT password FROM users WHERE user_id = $1", [user_id]);
+        const result = await db.query("SELECT password FROM users WHERE user_id = $1", [userIdValidation.userId]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "User not found" });
         }
         const user = result.rows[0];
+        
         // Verify current password
         const passwordMatch = await bcrypt.compare(current_password, user.password);
         if (!passwordMatch) {
             return res.status(401).json({ error: "Current password is incorrect" });
         }
+        
         // Hash new password
         const hashedPassword = await bcrypt.hash(new_password, saltRounds);
-        await db.query("UPDATE users SET password = $1 WHERE user_id = $2", [hashedPassword, user_id]);
+        await db.query("UPDATE users SET password = $1 WHERE user_id = $2", [hashedPassword, userIdValidation.userId]);
         res.json({ message: "Password updated successfully" });
     } catch (err) {
-        console.error("Change password error:", err);
-        res.status(500).json({ error: "Server error during password change" });
+        next(err);
     }
 });
 
@@ -203,43 +480,108 @@ app.post("/change-password", async (req, res) => {
 app.post("/delete-account", async (req, res) => {
     try {
         const { user_id, password } = req.body;
-        if (!user_id || !password) {
-            return res.status(400).json({ error: "user_id and password are required" });
+        
+        const userIdValidation = validateUserId(user_id);
+        if (!userIdValidation.isValid) {
+            return res.status(400).json({ error: userIdValidation.error });
         }
+
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.isValid) {
+            return res.status(400).json({ error: passwordValidation.error });
+        }
+
         // Get user
-        const result = await db.query("SELECT password FROM users WHERE user_id = $1", [user_id]);
+        const result = await db.query("SELECT password FROM users WHERE user_id = $1", [userIdValidation.userId]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "User not found" });
         }
         const user = result.rows[0];
+        
         // Verify password
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
             return res.status(401).json({ error: "Password is incorrect" });
         }
-        // Delete user (cascades to messages and configs)
-        await db.query("DELETE FROM users WHERE user_id = $1", [user_id]);
-        res.json({ message: "Account deleted successfully" });
+        
+        // Use a transaction to ensure all deletions succeed or fail together
+        // This prevents orphaned data if any deletion fails
+        await db.query('BEGIN');
+        
+        try {
+            // Delete messages first to maintain referential integrity
+            // This ensures no messages reference a user that no longer exists
+            await db.query("DELETE FROM messages WHERE user_id = $1", [userIdValidation.userId]);
+            
+            // Delete configs next
+            // This ensures no configs reference a user that no longer exists
+            await db.query("DELETE FROM configs WHERE user_id = $1", [userIdValidation.userId]);
+            
+            // Finally delete the user
+            // This is safe now that all dependent records have been deleted
+            const deleteResult = await db.query("DELETE FROM users WHERE user_id = $1", [userIdValidation.userId]);
+            
+            if (deleteResult.rowCount === 0) {
+                throw new Error("User not found during deletion");
+            }
+            
+            // Commit the transaction if all deletions succeeded
+            await db.query('COMMIT');
+            res.json({ message: "Account deleted successfully" });
+        } catch (deleteErr) {
+            // Rollback the transaction if any deletion failed
+            // This ensures database consistency
+            await db.query('ROLLBACK');
+            throw deleteErr;
+        }
     } catch (err) {
-        console.error("Delete account error:", err);
-        res.status(500).json({ error: "Server error during account deletion" });
+        console.error('Account deletion error:', err);
+        res.status(500).json({ error: "Error deleting account. Please try again." });
     }
 });
-//Save new config
-// Endpoint to save a new configuration
+
+// Save new config
 app.post("/configs", async (req, res) => {
-    // Extract fields from the request body
-    let { user_id, name, rotors, reflector, plugboardPairs } = req.body;
-    // Ensure a name is always saved; default to 'Unnamed Config' if blank
-    const nameToSave = name && name.trim() ? name : "Unnamed Config";
-    // Validate required fields
-    if (!user_id || !rotors || rotors.length !== 3 || !reflector ) {
-        return res.status(400).json({ error: "Missing required fields." });
-    }
-    // Prepare rotor and plugboard data for insertion
-    const [r1, r2, r3] = rotors;
-    const plugboard = plugboardPairs.map(pair => pair.join("-")).join(",");
     try {
+        // Extract fields from the request body
+        let { user_id, name, rotors, reflector, plugboardPairs } = req.body;
+        
+        // Validate all required fields
+        const userIdValidation = validateUserId(user_id);
+        if (!userIdValidation.isValid) {
+            return res.status(400).json({ error: userIdValidation.error });
+        }
+
+        const nameValidation = validateConfigName(name);
+        if (!nameValidation.isValid) {
+            return res.status(400).json({ error: nameValidation.error });
+        }
+
+        const rotorsValidation = validateRotors(rotors);
+        if (!rotorsValidation.isValid) {
+            return res.status(400).json({ error: rotorsValidation.error });
+        }
+
+        const reflectorValidation = validateReflector(reflector);
+        if (!reflectorValidation.isValid) {
+            return res.status(400).json({ error: reflectorValidation.error });
+        }
+
+        const plugboardValidation = validatePlugboardPairs(plugboardPairs || []);
+        if (!plugboardValidation.isValid) {
+            return res.status(400).json({ error: plugboardValidation.error });
+        }
+
+        // Verify user exists
+        const userCheck = await db.query("SELECT user_id FROM users WHERE user_id = $1", [userIdValidation.userId]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Prepare rotor and plugboard data for insertion
+        const [r1, r2, r3] = rotors;
+        const plugboard = plugboardPairs.map(pair => pair.join("-")).join(",");
+        
         // Insert the new config into the database
         const result = await db.query(
             `INSERT INTO configs (
@@ -251,12 +593,13 @@ app.post("/configs", async (req, res) => {
             ) VALUES (
                 $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
             ) RETURNING config_id`,
-            [user_id, nameToSave,
+            [userIdValidation.userId, nameValidation.name,
                 r1.spec, r2.spec, r3.spec,
                 r1.ringSetting, r2.ringSetting, r3.ringSetting,
                 r1.startPosition, r2.startPosition, r3.startPosition,
                 reflector, plugboard]
         );
+        
         // Format the config object to match what the frontend expects
         const config = result.rows[0];
         const formattedConfig = {
@@ -285,21 +628,24 @@ app.post("/configs", async (req, res) => {
                 ? config.plugboard.split(",").map(pair => pair.split("-"))
                 : []
         };
+        
         // Return the formatted config to the frontend
         res.status(201).json({ config: formattedConfig });
     } catch (err) {
-        // Log and return any errors
-        console.error("Error saving config:", err);
-        res.status(500).json({ error: "Failed to save configuration." });
+        next(err);
     }
 });
-//Get saved configs
+
+// Get saved configs
 app.get("/configs", async (req, res) => {
-    const { user_id } = req.query;
-    if (!user_id) {
-        return res.status(400).json({ error: "user_id is required" });
-    }
     try {
+        const { user_id } = req.query;
+        
+        const userIdValidation = validateUserId(user_id);
+        if (!userIdValidation.isValid) {
+            return res.status(400).json({ error: userIdValidation.error });
+        }
+
         const result = await db.query(
             `SELECT config_id, user_id, name, 
                 rotator_one, rotator_two, rotator_three,
@@ -309,13 +655,13 @@ app.get("/configs", async (req, res) => {
              FROM configs
              WHERE user_id = $1
              ORDER BY config_id DESC`,
-            [user_id]
+            [userIdValidation.userId]
         );
 
         const configs = result.rows.map(config => ({
             config_id: config.config_id,
             user_id: config.user_id,
-            name:config.name,
+            name: config.name,
             reflector: config.reflector,
             rotors: [
                 {
@@ -341,35 +687,61 @@ app.get("/configs", async (req, res) => {
 
         res.json({ configs });
     } catch (err) {
-        console.error("Error fetching configs:", err);
-        res.status(500).json({ error: "Failed to fetch configurations." });
-    }
-});
-//delete saved configs
-app.delete("/configs/:config_id", async (req, res) => {
-    const { config_id } = req.params;
-    try {
-        const result = await db.query(
-            "DELETE FROM configs WHERE config_id = $1 RETURNING *",
-            [config_id]
-        );
-        if (result.rowCount === 0) {
-            return res.status(404).json({ error: "Configuration not found" });
-        }
-        res.json({ message: "Configuration deleted" });
-    } catch (err) {
-        console.error("Error deleting config:", err);
-        res.status(500).json({ error: "Failed to delete configuration" });
+        next(err);
     }
 });
 
+// Delete saved configs
+app.delete("/configs/:config_id", async (req, res) => {
+    try {
+        const { config_id } = req.params;
+        
+        const configIdValidation = validateUserId(config_id); // Reuse user_id validation
+        if (!configIdValidation.isValid) {
+            return res.status(400).json({ error: "Valid config_id is required" });
+        }
+
+        // Use a transaction to ensure all deletions succeed or fail together
+        // This prevents orphaned messages if config deletion fails
+        await db.query('BEGIN');
+        
+        try {
+            // First, delete all messages associated with this config
+            // This ensures no messages reference a config that no longer exists
+            await db.query("DELETE FROM messages WHERE config_id = $1", [configIdValidation.userId]);
+            
+            // Then delete the config
+            // This is safe now that all dependent messages have been deleted
+            const result = await db.query(
+                "DELETE FROM configs WHERE config_id = $1 RETURNING *",
+                [configIdValidation.userId]
+            );
+            
+            if (result.rowCount === 0) {
+                // Rollback if config doesn't exist
+                await db.query('ROLLBACK');
+                return res.status(404).json({ error: "Configuration not found" });
+            }
+            
+            // Commit the transaction if all deletions succeeded
+            await db.query('COMMIT');
+            res.json({ message: "Configuration and associated messages deleted" });
+        } catch (deleteErr) {
+            // Rollback the transaction if any deletion failed
+            // This ensures database consistency
+            await db.query('ROLLBACK');
+            throw deleteErr;
+        }
+    } catch (err) {
+        console.error('Config deletion error:', err);
+        res.status(500).json({ error: "Error deleting configuration. Please try again." });
+    }
+});
 
 // listening log ///////////////////////////////////////////////////////////////
 
 app.listen(port, () => {
-
     console.log(`Hosting server on http://localhost:${port}`);
-
 });
 
 ////////////////////////////////////////////////////////////////////////////////
